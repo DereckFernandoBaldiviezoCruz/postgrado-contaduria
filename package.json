@@ -1,6 +1,6 @@
 {
   "name": "maestrias-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "electron/main.cjs",
   "build": {
     "appId": "com.tuapp.maestrias",
@@ -24,7 +24,19 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ],
+    "asarUnpack": [
+      "backend/db/ca.pem"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TU_USUARIO/maestrias-app.git"
   },
   "private": true,
   "scripts": {
