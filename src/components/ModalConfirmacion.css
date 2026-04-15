@@ -1,0 +1,26 @@
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.confirm-modal {
+  background: white;
+  width: 380px; /* 👈 NO 100% */
+  max-width: 90%;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  text-align: center;
+}
+
+.confirm-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}

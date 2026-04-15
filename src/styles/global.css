@@ -1,0 +1,566 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--gris-bg);
+}
+
+:root {
+  --azul-principal: #0b3558;
+  --azul-secundario: #173a5e;
+  --rojo-acento: #d62828;
+  --gris-bg: #f4f6f9;
+  --blanco: #ffffff;
+}
+
+/* INPUT GLOBAL */
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* BOTÓN BASE */
+button {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* TABLAS */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffffb0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+thead {
+  background: #0b3558;
+  color: white;
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+}
+
+tbody tr:nth-child(even) {
+  background: #f2f2f2;
+}
+
+.tablaDocentes {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  font-size: 15px;
+  white-space: nowrap;
+  padding-right: 15px;
+}
+
+.tablaDocentes thead tr {
+  background: linear-gradient(90deg, #0d3b66, #3f88c5);
+  color: #fff;
+  text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.tablaDocentes th,
+.tablaDocentes td {
+  padding: 12px 16px;
+}
+
+.tablaDocentes tbody tr {
+  background: #ffffffeb;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tablaDocentes tbody tr:hover {
+  background: #e0f2ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+}
+
+.tituloEstudiantes {
+  align-items: center;
+  background: #0d3b660d;
+  border-left: 6px solid #06a77d;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px #0000001a;
+  color: #0d3b66;
+  display: flex;
+  font-size: 28px;
+  font-weight: 700;
+  gap: 12px;
+  margin-bottom: 25px;
+  padding-left: 12px;
+  padding-right: 30px;
+}
+
+.layout {
+  display: flex;
+  height: 100vh;
+  background: #f4f6f9;
+}
+
+.content {
+  background: #f7f8fa;
+  border-radius: 0 0 0 12px;
+  flex: 1 1;
+  overflow-y: hidden;
+  padding: 5px;
+  width: 100%;
+}
+
+.contenido {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+
+  position: relative;
+
+  background-image: url('../../public/logo2.png');
+  background-repeat: no-repeat;
+  background-position: calc(50% + 127px) top;
+  background-size: 450px;
+  background-attachment: fixed;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.header h2 {
+  color: #0b3558;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #002147;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+input {
+  width: 90%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-agregar,
+.btn-excel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn-agregar {
+  background: linear-gradient(135deg, #06a77d, #04a36f);
+  color: #fff;
+}
+
+.btn-agregar:hover {
+  background: linear-gradient(135deg, #04a36f, #038a67);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.btn-excel {
+  background: linear-gradient(135deg, #06a77d, #04a36f);
+  color: #fff;
+}
+
+.btn-excel:hover {
+  background: linear-gradient(135deg, #04a36f, #038a67);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.filtros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filtros input {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #ccc;
+  font-size: 14px;
+  background: #fdfdfd;
+  transition: all 0.3s ease;
+}
+
+.filtros input:focus {
+  border-color: #06a77d;
+  outline: none;
+  box-shadow: 0 0 8px rgba(6, 167, 125, 0.3);
+}
+
+/* ===== BOTONES DE ACCION ===== */
+
+.btn-editar,
+.btn-eliminar {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  width: 50%;
+}
+
+/* EDITAR */
+.btn-editar {
+  background: #3f88c5;
+  color: white;
+}
+
+.btn-editar:hover {
+  background: #2f6ea3;
+  transform: translateY(-1px);
+}
+
+/* ELIMINAR */
+.btn-eliminar {
+  background: #e63946;
+  color: white;
+}
+
+.btn-eliminar:hover {
+  background: #c1121f;
+  transform: translateY(-1px);
+}
+
+.estado {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* gris */
+.estado.pendiente {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.estado.recepcionado {
+  background: #f5d0d0;
+  color: #4d1919;
+}
+
+/* celeste */
+.estado.revision {
+  background: #d9edf7;
+  color: #31708f;
+}
+
+/* verde */
+.estado.aceptado {
+  background: #d4edda;
+  color: #155724;
+}
+
+/* morado/azul */
+.estado.programada {
+  background: #e3dcff;
+  color: #4b3fbf;
+}
+
+/* azul fuerte */
+.estado.finalizado {
+  background: #7a8c8f;
+  color: #0c5460;
+}
+
+.estado.aprobado {
+  background: #28a745;
+}
+
+.estado.reprobado {
+  background: #dc3545;
+}
+
+.estado.rechazado {
+  background: #ef4444;
+}
+
+.barra-busqueda {
+  margin: 15px 0;
+}
+
+.barra-busqueda input {
+  width: 320px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #d0d5dd;
+  font-size: 14px;
+}
+
+.tribunal-modal {
+  width: 520px;
+  padding: 30px;
+  border-radius: 14px;
+}
+
+.modal-title {
+  text-align: center;
+  color: #1f3b5b;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.modal-subtitle {
+  text-align: center;
+  color: #667085;
+  margin-bottom: 25px;
+}
+
+.modal-subtitle span {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.tribunal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475467;
+}
+
+.campo select {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #d0d5dd;
+  background: #f9fafb;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  gap: 12px;
+}
+
+.btn-cancelar {
+  flex: 1;
+  background: #e5e7eb;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-guardar {
+  flex: 1;
+  background: #173a5e;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.acciones button {
+  width: 100%;
+}
+
+.accionesSeguimiento {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.accionesSeguimiento button {
+  flex: 1;
+  min-width: 90px;
+}
+
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(135deg, #7a0c0c, #0b3d91);
+
+  animation: fadeIn 0.6s ease;
+}
+
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  width: 340px;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  animation: slideUp 0.5s ease;
+}
+
+.login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.login-logo img {
+  width: 70px;
+}
+
+.login-box h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* INPUT GROUP */
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px;
+  gap: 6px;
+
+  transition: 0.2s;
+}
+
+.input-group:focus-within {
+  border-color: #0b3d91;
+  box-shadow: 0 0 5px rgba(11, 61, 145, 0.3);
+}
+
+.input-group input {
+  border: none;
+  flex: 1;
+  outline: none;
+}
+
+/* ICON */
+
+.icon {
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+/* SHOW PASSWORD */
+
+.show-pass {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+/* BUTTON */
+
+.login-box button {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+
+  background: #0b3d91;
+  color: white;
+
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.login-box button:hover {
+  background: #082d6d;
+}
+
+.login-box button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ERROR */
+
+.login-error {
+  color: red;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* ANIMATIONS */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

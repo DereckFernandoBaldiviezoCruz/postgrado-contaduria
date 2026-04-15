@@ -1,0 +1,66 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  border-left: 5px solid #ccc; /* color lateral */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+.card-title {
+  font-size: 17px;
+  color: #5c5c5c;
+}
+
+.card-value {
+  font-size: 26px;
+  font-weight: bold;
+  margin-top: 5px;
+  color: #222;
+}
+
+.card.total {
+  border-left-color: #3b82f6;
+} /* azul */
+.card.revision {
+  border-left-color: #f59e0b;
+} /* naranja */
+.card.sintribunal {
+  border-left-color: #ef4444;
+} /* rojo */
+.card.sinfecha {
+  border-left-color: #8b5cf6;
+} /* violeta */
+.card.programado {
+  border-left-color: #06b6d4;
+} /* celeste */
+.card.calificacion {
+  border-left-color: #eab308;
+} /* amarillo */
+.card.rechazado {
+  border-left-color: #dc2626;
+} /* rojo fuerte */
+.card.finalizado {
+  border-left-color: #16a34a;
+} /* verde */
+
+.tabla-scroll {
+  max-height: 300px; /* aprox 6 filas */
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}

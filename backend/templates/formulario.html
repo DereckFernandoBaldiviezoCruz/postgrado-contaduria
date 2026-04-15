@@ -1,0 +1,297 @@
+<html>
+
+<head>
+    <style>
+        @page {
+            size: legal portrait;
+            margin: 3cm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            text-align: center;
+            margin: 5px 0;
+        }
+
+        h1 {
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        h3 {
+            font-size: 13px;
+            text-decoration: underline;
+        }
+
+        h4 {
+            text-align: left;
+            margin-top: 30px;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        td {
+            border: 1px solid #000;
+            font-size: 12px;
+            vertical-align: middle;
+            padding: 5px;
+        }
+
+        .fila1 { height: 1cm; }
+        .fila2 { height: 6cm; }
+
+        .fila-carrera {
+            height: 2cm;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .datos-col1,
+        .datos-col2 {
+            width: 50%;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .tribunal-col1 {
+            width: 25%;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .tribunal-col2 {
+            width: 75%;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .fecha-col1 {
+            width: 50%;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .fecha-col2 {
+            width: 50%;
+            text-align: left;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>UNIVERSIDAD SAN FRANCISCO XAVIER DE CHUQUISACA<br>
+FACULTAD DE CONTADURÍA PÚBLICA Y CIENCIAS FINANCIERAS<br>
+ANEXO N°3</h1>
+
+<h2>MODALIDAD GRADUACIÓN DE DIPLOMADO</h2>
+<h3>FORMULARIO DE OBSERVACIONES</h3>
+<h3>PRIMERA REVISIÓN</h3>
+
+<h4>DATOS GENERALES:</h4>
+
+<table>
+<tr class="fila1">
+<td class="datos-col1"><strong>PROGRAMA DE DIPLOMADO EN:</strong></td>
+<td class="datos-col2"><strong>TÍTULO DE MONOGRAFÍA:</strong></td>
+</tr>
+
+<tr class="fila2">
+<td class="datos-col1">{{programa}}</td>
+<td class="datos-col2">{{tema}}</td>
+</tr>
+</table>
+
+
+<h4>CARRERA DE:</h4>
+
+<table>
+<tr class="fila-carrera">
+<td>{{carrera}}</td>
+</tr>
+</table>
+
+
+<h4>FECHAS DE REVISION:</h4>
+
+<table>
+<tr>
+<td class="fecha-col1">FECHA DESIGNACION:</td>
+<td class="fecha-col2">{{fechaTexto}}</td>
+</tr>
+
+<tr>
+<td class="fecha-col1">FECHA DE PRIMERA REVISION (Máximo 5 días)</td>
+<td class="fecha-col2">&nbsp;</td>
+</tr>
+</table>
+
+
+<h4 style="text-align:center;">OBSERVACIONES PRIMERA REVISIÓN</h4>
+
+<table style="width:100%; border-collapse: collapse; margin-top:10px; table-layout: fixed;">
+
+<tr>
+<td colspan="2" style="border:1px solid #000; padding:5px;">
+ESTRUCTURA DE PRESENTACIÓN:
+</td>
+</tr>
+
+<tr style="height:3cm;">
+<td colspan="2" style="border:1px solid #000;"></td>
+</tr>
+
+<tr>
+<td colspan="2" style="border:1px solid #000; padding:5px;">
+CAPÍTULO I: INTRODUCCIÓN
+</td>
+</tr>
+
+<tr style="height:3cm;">
+<td colspan="2" style="border:1px solid #000;"></td>
+</tr>
+
+<tr>
+<td colspan="2" style="border:1px solid #000; padding:5px;">
+CAPÍTULO II: DESARROLLO
+</td>
+</tr>
+
+<tr style="height:3cm;">
+<td colspan="2" style="border:1px solid #000;"></td>
+</tr>
+
+<tr>
+<td colspan="2" style="border:1px solid #000; padding:5px;">
+CAPÍTULO III: CONCLUSIONES
+</td>
+</tr>
+
+<tr style="height:3cm;">
+<td colspan="2" style="border:1px solid #000;"></td>
+</tr>
+
+<tr>
+<td style="border:1px solid #000; width:50%; text-align:left; padding:5px;">
+FECHA DE SIGUIENTE REVISIÓN (Si Corresponde)
+</td>
+
+<td style="border:1px solid #000;"></td>
+</tr>
+
+</table>
+
+
+<h4 style="margin-top:20px;">HABILITADO A DEFENSA</h4>
+
+SI <input type="checkbox"> NO <input type="checkbox">
+
+<p style="margin-top:10px;">
+FECHA DEFENSA (Si Corresponde):
+.....................................................
+</p>
+
+
+<h4 style="margin-top:30px;">TRIBUNAL - POSTULANTE(S):</h4>
+
+<table style="width:100%; border-collapse: collapse; margin-top:10px;">
+
+<tr>
+<th style="border:1px solid #000; padding:5px; text-align:center;">
+NOMBRE COMPLETO
+</th>
+
+<th style="border:1px solid #000; padding:5px; text-align:center;">
+ROL
+</th>
+
+<th style="border:1px solid #000; padding:5px; text-align:center;">
+FIRMA
+</th>
+
+<th style="border:1px solid #000; padding:5px; text-align:center;">
+ASISTENCIA (✔ / ✘)
+</th>
+</tr>
+
+
+<tr>
+<td style="border:1px solid #000; padding:5px;">
+{{presidente}}
+</td>
+
+<td style="border:1px solid #000; text-align:center;">
+Presidente
+</td>
+
+<td style="border:1px solid #000;"></td>
+<td style="border:1px solid #000;"></td>
+</tr>
+
+
+<tr>
+<td style="border:1px solid #000; padding:5px;">
+{{secretario}}
+</td>
+
+<td style="border:1px solid #000; text-align:center;">
+Secretario
+</td>
+
+<td style="border:1px solid #000;"></td>
+<td style="border:1px solid #000;"></td>
+</tr>
+
+
+<tr>
+<td style="border:1px solid #000; padding:5px;">
+{{vocal}}
+</td>
+
+<td style="border:1px solid #000; text-align:center;">
+Vocal
+</td>
+
+<td style="border:1px solid #000;"></td>
+<td style="border:1px solid #000;"></td>
+</tr>
+
+
+<tr>
+<td style="border:1px solid #000; padding:5px;">
+{{estudiante}}
+</td>
+
+<td style="border:1px solid #000; text-align:center;">
+Postulante
+</td>
+
+<td style="border:1px solid #000;"></td>
+<td style="border:1px solid #000;"></td>
+</tr>
+
+</table>
+
+</body>
+</html>

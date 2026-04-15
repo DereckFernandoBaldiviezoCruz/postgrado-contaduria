@@ -1,0 +1,12 @@
+.btn-activar {
+  background: #28a745;
+  color: white;
+}
+
+.btn-activar:hover {
+  background: #218838;
+}
+
+tr.inactivo {
+  opacity: 0.6;
+}

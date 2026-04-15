@@ -1,0 +1,143 @@
+/* Layout principal */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  background: #f7f8fa;
+  min-width: 1200px !important;
+}
+
+/* Sidebar moderno */
+.sidebar {
+  width: 260px;
+  background: #ff002211;
+  color: #1E293B;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 15px;
+  border-right: 1px solid #e5e7eb;
+}
+
+/* Menú con scroll elegante */
+.menu {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  /* Firefox */
+  scrollbar-color: #1E293B;
+  /* color dorado translúcido */
+  scroll-behavior: smooth;
+  /* desplazamiento suave */
+}
+
+/* Scrollbar para Chrome, Edge, Safari */
+.menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.menu::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.menu::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(245, 230, 196, 0.4), rgba(245, 230, 196, 0.6));
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.menu::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(245, 230, 196, 0.7), rgba(245, 230, 196, 0.9));
+}
+
+/* Añade un sutil brillo al pasar el mouse por el menú */
+.menu:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(245, 230, 196, 0.6), rgba(245, 230, 196, 0.8));
+}
+
+/* LOGO */
+.logo {
+  text-align: center;
+}
+
+.logo img {
+  width: 140px;
+}
+
+.logo-title {
+  font-weight: 700;
+  color: #0A2A66;
+  font-size: 18px;
+}
+
+/* USER */
+.user-info {
+  font-size: 13px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+/* Menú */
+.menu {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #334155;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+/* Hover */
+.menu-item:hover {
+  background: #f1f5f9;
+}
+
+/* Active */
+.menu-item.active {
+  background: #0A2A66;
+  color: white;
+  font-weight: 600;
+}
+
+/* ICON ACTIVE */
+.menu-item.active svg {
+  color: white;
+}
+
+/* BOTON LOGOUT */
+.logout-btn {
+  margin-top: auto;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #C62828;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #a61b1b;
+}
+
+/* Contenido principal */
+.content {
+  flex: 1;
+  padding: 35px;
+  background: #f7f8fa;
+  overflow-y: auto;
+  border-radius: 0 0 0 12px;
+}
