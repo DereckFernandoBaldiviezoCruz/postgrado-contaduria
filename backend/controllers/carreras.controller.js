@@ -1,83 +1,108 @@
 const db = require('../db/db');
 const registrarAuditoria = require('./auditoria');
+const manejarErrorDB = require('./dbError');
 
 async function listar() {
-  const [rows] = await db.query(
-    "SELECT * FROM carreras WHERE estado='Activo' ORDER BY id DESC",
-  );
-  return rows;
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM carreras WHERE estado='Activo' ORDER BY id DESC",
+    );
+    return rows;
+  } catch (error) {
+    manejarErrorDB(error);
+  }
 }
 
 async function crear(data, usuario_id) {
-  const { nombre, estado } = data;
+  try {
+    const { nombre, estado } = data;
 
-  const [result] = await db.query(
-    'INSERT INTO carreras (nombre, estado) VALUES (?,?)',
-    [nombre, estado],
-  );
+    const [result] = await db.query(
+      'INSERT INTO carreras (nombre, estado) VALUES (?,?)',
+      [nombre, estado],
+    );
 
-  await registrarAuditoria(
-    'carreras',
-    result.insertId,
-    'INSERT',
-    `Se creó la carrera "${nombre}"`,
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'carreras',
+      result.insertId,
+      'INSERT',
+      `Se creó la carrera "${nombre}"`,
+      usuario_id,
+    );
 
-  return { id: result.insertId };
+    return { id: result.insertId };
+  } catch (error) {
+    manejarErrorDB(error);
+  }
 }
 
 async function editar(id, data, usuario_id) {
-  const { nombre, estado } = data;
+  try {
+    const { nombre, estado } = data;
 
-  await db.query('UPDATE carreras SET nombre=?, estado=? WHERE id=?', [
-    nombre,
-    estado,
-    id,
-  ]);
+    await db.query('UPDATE carreras SET nombre=?, estado=? WHERE id=?', [
+      nombre,
+      estado,
+      id,
+    ]);
 
-  await registrarAuditoria(
-    'carreras',
-    id,
-    'UPDATE',
-    `Se editó la carrera "${nombre}"`,
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'carreras',
+      id,
+      'UPDATE',
+      `Se editó la carrera "${nombre}"`,
+      usuario_id,
+    );
 
-  return { ok: true };
+    return { ok: true };
+  } catch (error) {
+    manejarErrorDB(error);
+  }
 }
 
 async function eliminar(id, usuario_id) {
-  await db.query("UPDATE carreras SET estado='Inactivo' WHERE id=?", [id]);
+  try {
+    await db.query("UPDATE carreras SET estado='Inactivo' WHERE id=?", [id]);
 
-  await registrarAuditoria(
-    'carreras',
-    id,
-    'DELETE',
-    'Se desactivó una carrera',
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'carreras',
+      id,
+      'DELETE',
+      'Se desactivó una carrera',
+      usuario_id,
+    );
 
-  return { ok: true };
+    return { ok: true };
+  } catch (error) {
+    manejarErrorDB(error);
+  }
 }
 
 async function listarTodos() {
-  const [rows] = await db.query('SELECT * FROM carreras ORDER BY id DESC');
-  return rows;
+  try {
+    const [rows] = await db.query('SELECT * FROM carreras ORDER BY id DESC');
+    return rows;
+  } catch (error) {
+    manejarErrorDB(error);
+  }
 }
 
 async function cambiarEstadoCarrera(id, estado, usuario_id) {
-  await db.query('UPDATE carreras SET estado=? WHERE id=?', [estado, id]);
+  try {
+    await db.query('UPDATE carreras SET estado=? WHERE id=?', [estado, id]);
 
-  await registrarAuditoria(
-    'carreras',
-    id,
-    'UPDATE',
-    `Se cambió estado de carrera a ${estado}`,
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'carreras',
+      id,
+      'UPDATE',
+      `Se cambió estado de carrera a ${estado}`,
+      usuario_id,
+    );
 
-  return { ok: true };
+    return { ok: true };
+  } catch (error) {
+    manejarErrorDB(error);
+  }
 }
 
 module.exports = {

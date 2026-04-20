@@ -7,14 +7,34 @@ export default function EditarTribunales() {
   const [modal, setModal] = useState(false);
   const [seleccion, setSeleccion] = useState(null);
   const [buscar, setBuscar] = useState('');
+  const [ultimoCount, setUltimoCount] = useState(0);
 
-  const cargar = async () => {
-    setData(await listarDefensas());
+  const cargar = async (forzar = false) => {
+    try {
+      const nuevas = await listarDefensas();
+
+      // 🚫 No actualizar si el modal está abierto
+      if (modal && !forzar) return;
+
+      // 🔥 Solo actualizar si hay cambios
+      if (forzar || nuevas.length !== ultimoCount) {
+        setData(nuevas);
+        setUltimoCount(nuevas.length);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
-    cargar();
-  }, []);
+    cargar(true); // carga inicial
+
+    const interval = setInterval(() => {
+      cargar(); // verificación
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [modal]);
 
   const abrir = (row) => {
     setSeleccion(row);
@@ -117,9 +137,12 @@ export default function EditarTribunales() {
 
       <ModalTribunal
         abierto={modal}
-        cerrar={() => setModal(false)}
+        cerrar={() => {
+          setModal(false);
+          cargar(true); // 🔥 recarga segura al cerrar
+        }}
         recepcion={seleccion}
-        recargar={cargar}
+        recargar={() => cargar(true)}
       />
     </div>
   );

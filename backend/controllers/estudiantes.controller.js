@@ -1,6 +1,10 @@
 const db = require('../db/db');
 const registrarAuditoria = require('./auditoria');
+const manejarErrorDB = require('./dbError');
 
+/* =========================
+   LISTAR ACTIVOS
+========================= */
 async function listar(buscar = '') {
   try {
     let sql = `
@@ -9,24 +13,24 @@ async function listar(buscar = '') {
         c.nombre AS carrera_nombre
       FROM estudiantes e
       LEFT JOIN carreras c ON c.id = e.carrera_id
+      WHERE e.estado='Activo'
     `;
 
     let params = [];
 
     if (buscar) {
       sql += `
-    WHERE e.estado='Activo' AND (
-      e.nombre_completo LIKE ?
-      OR e.ci LIKE ?
-      OR e.correo LIKE ?
-      OR e.celular LIKE ?
-      OR c.nombre LIKE ?
-    )
-  `;
+        AND (
+          e.nombre_completo LIKE ?
+          OR e.ci LIKE ?
+          OR e.correo LIKE ?
+          OR e.celular LIKE ?
+          OR c.nombre LIKE ?
+        )
+      `;
+
       const filtro = `%${buscar}%`;
       params = [filtro, filtro, filtro, filtro, filtro];
-    } else {
-      sql += ` WHERE e.estado='Activo' `;
     }
 
     sql += ' ORDER BY e.id DESC';
@@ -34,11 +38,13 @@ async function listar(buscar = '') {
     const [rows] = await db.query(sql, params);
     return rows;
   } catch (error) {
-    console.error(error);
-    throw new Error('Error al listar estudiantes');
+    manejarErrorDB(error, 'Error al listar estudiantes');
   }
 }
 
+/* =========================
+   CREAR
+========================= */
 async function crear(data, usuario_id) {
   try {
     const { nombre_completo, ci, correo, celular, carrera_id } = data;
@@ -66,10 +72,13 @@ async function crear(data, usuario_id) {
       throw new Error('Ya existe un estudiante con ese CI');
     }
 
-    throw error;
+    manejarErrorDB(error, 'Error al crear estudiante');
   }
 }
 
+/* =========================
+   EDITAR
+========================= */
 async function editar(id, data, usuario_id) {
   try {
     await db.query(
@@ -106,122 +115,149 @@ async function editar(id, data, usuario_id) {
       throw new Error('Ya existe un estudiante con ese CI');
     }
 
-    throw error;
+    manejarErrorDB(error, 'Error al editar estudiante');
   }
 }
 
+/* =========================
+   ELIMINAR (INACTIVAR)
+========================= */
 async function eliminar(id, usuario_id) {
-  const [[est]] = await db.query(
-    'SELECT nombre_completo FROM estudiantes WHERE id=?',
-    [id],
-  );
+  try {
+    const [[est]] = await db.query(
+      'SELECT nombre_completo FROM estudiantes WHERE id=?',
+      [id],
+    );
 
-  await db.query("UPDATE estudiantes SET estado='Inactivo' WHERE id=?", [id]);
+    await db.query("UPDATE estudiantes SET estado='Inactivo' WHERE id=?", [id]);
 
-  await registrarAuditoria(
-    'estudiantes',
-    id,
-    'UPDATE',
-    `Se desactivó estudiante "${est?.nombre_completo || ''}"`,
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'estudiantes',
+      id,
+      'UPDATE',
+      `Se desactivó estudiante "${est?.nombre_completo || ''}"`,
+      usuario_id,
+    );
 
-  return { ok: true };
+    return { ok: true };
+  } catch (error) {
+    manejarErrorDB(error, 'Error al eliminar estudiante');
+  }
 }
 
+/* =========================
+   LISTAR TODOS
+========================= */
 async function listarTodos(buscar = '') {
-  let sql = `
-    SELECT *
-    FROM estudiantes
-    WHERE 1=1
-  `;
-
-  let params = [];
-
-  if (buscar) {
-    sql += `
-      AND (
-        nombre_completo LIKE ?
-        OR ci LIKE ?
-        OR celular LIKE ?
-        OR correo LIKE ?
-      )
+  try {
+    let sql = `
+      SELECT *
+      FROM estudiantes
+      WHERE 1=1
     `;
 
-    const filtro = `%${buscar}%`;
-    params = [filtro, filtro, filtro, filtro];
+    let params = [];
+
+    if (buscar) {
+      sql += `
+        AND (
+          nombre_completo LIKE ?
+          OR ci LIKE ?
+          OR celular LIKE ?
+          OR correo LIKE ?
+        )
+      `;
+
+      const filtro = `%${buscar}%`;
+      params = [filtro, filtro, filtro, filtro];
+    }
+
+    sql += ` ORDER BY nombre_completo ASC`;
+
+    const [rows] = await db.query(sql, params);
+    return rows;
+  } catch (error) {
+    manejarErrorDB(error, 'Error al listar estudiantes');
   }
-
-  sql += ` ORDER BY nombre_completo ASC`;
-
-  const [rows] = await db.query(sql, params);
-
-  return rows;
 }
 
+/* =========================
+   CAMBIAR ESTADO
+========================= */
 async function cambiarEstadoEstudiante(id, estado, usuario_id) {
-  const [[est]] = await db.query(
-    'SELECT nombre_completo FROM estudiantes WHERE id=?',
-    [id],
-  );
+  try {
+    const [[est]] = await db.query(
+      'SELECT nombre_completo FROM estudiantes WHERE id=?',
+      [id],
+    );
 
-  await db.query('UPDATE estudiantes SET estado=? WHERE id=?', [estado, id]);
+    await db.query('UPDATE estudiantes SET estado=? WHERE id=?', [estado, id]);
 
-  await registrarAuditoria(
-    'estudiantes',
-    id,
-    'UPDATE',
-    `Se cambió estado de estudiante "${est?.nombre_completo || ''}" a ${estado}`,
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'estudiantes',
+      id,
+      'UPDATE',
+      `Se cambió estado de estudiante "${est?.nombre_completo || ''}" a ${estado}`,
+      usuario_id,
+    );
 
-  return { ok: true };
+    return { ok: true };
+  } catch (error) {
+    manejarErrorDB(error, 'Error al cambiar estado del estudiante');
+  }
 }
 
+/* =========================
+   IMPORTAR
+========================= */
 async function importar(datos, usuario_id) {
-  let insertados = 0;
-  let duplicados = [];
+  try {
+    let insertados = 0;
+    let duplicados = [];
 
-  for (const e of datos) {
-    try {
-      const [carrera] = await db.query(
-        'SELECT id FROM carreras WHERE nombre=?',
-        [e.carrera],
-      );
+    for (const e of datos) {
+      try {
+        const [carrera] = await db.query(
+          'SELECT id FROM carreras WHERE nombre=?',
+          [e.carrera],
+        );
 
-      if (carrera.length === 0) continue;
+        if (carrera.length === 0) continue;
 
-      await db.query(
-        `
-        INSERT INTO estudiantes
-        (nombre_completo, ci, correo, celular, carrera_id)
-        VALUES (?,?,?,?,?)
-      `,
-        [e.nombre_completo, e.ci, e.correo, e.celular, carrera[0].id],
-      );
+        await db.query(
+          `
+          INSERT INTO estudiantes
+          (nombre_completo, ci, correo, celular, carrera_id)
+          VALUES (?,?,?,?,?)
+        `,
+          [e.nombre_completo, e.ci, e.correo, e.celular, carrera[0].id],
+        );
 
-      insertados++;
-    } catch (error) {
-      if (error.code === 'ER_DUP_ENTRY') {
-        duplicados.push(e.ci);
-      } else {
-        throw error;
+        insertados++;
+      } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+          duplicados.push(e.ci);
+        } else {
+          throw error;
+        }
       }
     }
+
+    await registrarAuditoria(
+      'estudiantes',
+      0,
+      'IMPORT',
+      `Importación masiva de estudiantes (${insertados} insertados)`,
+      usuario_id,
+    );
+
+    return {
+      insertados,
+      duplicados,
+    };
+  } catch (error) {
+    manejarErrorDB(error, 'Error al importar estudiantes');
   }
-
-  await registrarAuditoria(
-    'estudiantes',
-    0,
-    'IMPORT',
-    `Importación masiva de estudiantes (${insertados} insertados)`,
-    usuario_id,
-  );
-
-  return {
-    insertados,
-    duplicados,
-  };
 }
 
 module.exports = {

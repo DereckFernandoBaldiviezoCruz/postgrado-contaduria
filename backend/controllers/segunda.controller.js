@@ -1,13 +1,15 @@
 const db = require('../db/db');
 const registrarAuditoria = require('./auditoria');
+const dbError = require('./dbError');
 
 /* =========================
    OBTENER REPROBADOS
 ========================= */
 async function obtenerSegundaInstancia(buscar = '') {
-  const area = global.areaActual;
+  try {
+    const area = global.areaActual;
 
-  let sql = `
+    let sql = `
 SELECT
   r.id AS recepcion_id,
   r.tema,
@@ -39,104 +41,109 @@ AND r.id = (
   WHERE r2.estudiante_id = r.estudiante_id
 )
 
--- 🔥 SOLO ÚLTIMO MES (O LOS REPROBADOS SIN FECHA)
+-- 🔥 SOLO ÚLTIMO MES
 AND (
   c.fecha_registro >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
 )
-
 `;
 
-  let params = [area];
+    let params = [area];
 
-  if (buscar) {
-    sql += `
-      AND (
-        e.nombre_completo LIKE ?
-        OR r.tema LIKE ?
-      )
-    `;
-    const filtro = `%${buscar}%`;
-    params.push(filtro, filtro);
+    if (buscar) {
+      sql += `
+        AND (
+          e.nombre_completo LIKE ?
+          OR r.tema LIKE ?
+        )
+      `;
+      const filtro = `%${buscar}%`;
+      params.push(filtro, filtro);
+    }
+
+    sql += ` ORDER BY e.nombre_completo`;
+
+    const [rows] = await db.query(sql, params);
+    return rows;
+  } catch (error) {
+    throw dbError(error);
   }
-
-  sql += ` ORDER BY e.nombre_completo`;
-
-  const [rows] = await db.query(sql, params);
-  return rows;
 }
 
 /* =========================
    GUARDAR SEGUNDA INSTANCIA
 ========================= */
 async function guardarSegundaInstancia(data, usuario_id) {
-  const { recepcion_id, nota_defensa } = data;
+  try {
+    const { recepcion_id, nota_defensa } = data;
 
-  const [[info]] = await db.query(
-    `
-    SELECT c.*, p.area
-    FROM calificaciones c
-    JOIN recepciones r ON r.id = c.recepcion_id
-    JOIN programas p ON p.id = r.programa_id
-    WHERE c.recepcion_id=?
-    `,
-    [recepcion_id],
-  );
-
-  const tipo = info.area;
-  let instancia = info.instancia || 1;
-
-  // 🔒 VALIDACIONES
-
-  if (tipo === 'Diplomados' && instancia >= 4) {
-    throw new Error('Máximo de instancias alcanzado');
-  }
-
-  instancia++;
-
-  let suma = 0;
-
-  if (tipo === 'Diplomados') {
-    suma = parseInt(info.nota_entrada) + parseInt(nota_defensa);
-  } else {
-    suma = parseInt(nota_defensa);
-  }
-
-  const estado = suma >= 66 ? 'Aprobado' : 'Reprobado';
-
-  await db.query(
-    `
-    UPDATE calificaciones
-    SET 
-      nota_defensa=?,
-      suma=?,
-      estado=?,
-      instancia=?
-    WHERE recepcion_id=?
-    `,
-    [nota_defensa, suma, estado, instancia, recepcion_id],
-  );
-
-  // ✅ FINALIZA SOLO SI APRUEBA
-  if (estado === 'Aprobado') {
-    await db.query(
+    const [[info]] = await db.query(
       `
-      UPDATE recepciones
-      SET estado='Finalizado', fecha_finalizacion=NOW()
-      WHERE id=?
+      SELECT c.*, p.area
+      FROM calificaciones c
+      JOIN recepciones r ON r.id = c.recepcion_id
+      JOIN programas p ON p.id = r.programa_id
+      WHERE c.recepcion_id=?
       `,
       [recepcion_id],
     );
+
+    const tipo = info.area;
+    let instancia = info.instancia || 1;
+
+    // 🔒 VALIDACIONES
+    if (tipo === 'Diplomados' && instancia >= 4) {
+      throw new Error('Máximo de instancias alcanzado');
+    }
+
+    instancia++;
+
+    let suma = 0;
+
+    if (tipo === 'Diplomados') {
+      suma = parseInt(info.nota_entrada) + parseInt(nota_defensa);
+    } else {
+      suma = parseInt(nota_defensa);
+    }
+
+    const estado = suma >= 66 ? 'Aprobado' : 'Reprobado';
+
+    await db.query(
+      `
+      UPDATE calificaciones
+      SET 
+        nota_defensa=?,
+        suma=?,
+        estado=?,
+        instancia=?
+      WHERE recepcion_id=?
+      `,
+      [nota_defensa, suma, estado, instancia, recepcion_id],
+    );
+
+    // ✅ FINALIZA SOLO SI APRUEBA
+    if (estado === 'Aprobado') {
+      await db.query(
+        `
+        UPDATE recepciones
+        SET estado='Finalizado', fecha_finalizacion=NOW()
+        WHERE id=?
+        `,
+        [recepcion_id],
+      );
+    }
+
+    await registrarAuditoria(
+      'calificaciones',
+      recepcion_id,
+      'UPDATE',
+      `Segunda instancia (${tipo}) → ${estado}`,
+      usuario_id,
+    );
+
+    return true;
+  } catch (error) {
+    throw dbError(error);
   }
-
-  await registrarAuditoria(
-    'calificaciones',
-    recepcion_id,
-    'UPDATE',
-    `Segunda instancia (${tipo}) → ${estado}`,
-    usuario_id,
-  );
-
-  return true;
 }
 
 module.exports = {

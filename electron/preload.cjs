@@ -181,4 +181,5 @@ contextBridge.exposeInMainWorld('api', {
   obtenerPorMes: () => ipcRenderer.invoke('reportes:mes'),
   obtenerPorPrograma: () => ipcRenderer.invoke('reportes:programa'),
   obtenerCargaDocentes: () => ipcRenderer.invoke('reportes:carga'),
+  onMessage: (callback) => ipcRenderer.on('msg', callback),
 });

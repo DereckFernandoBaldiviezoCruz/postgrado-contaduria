@@ -1,6 +1,10 @@
 const db = require('../db/db');
 const registrarAuditoria = require('./auditoria');
+const manejarErrorDB = require('./dbError');
 
+/* =========================
+   LISTAR
+========================= */
 async function listar(buscar = '') {
   try {
     let sql = `
@@ -9,7 +13,7 @@ async function listar(buscar = '') {
         c.nombre AS carrera_nombre
       FROM docentes d
       LEFT JOIN carreras c ON c.id = d.carrera_id
-      `;
+    `;
 
     let params = [];
 
@@ -37,11 +41,13 @@ async function listar(buscar = '') {
     const [rows] = await db.query(sql, params);
     return rows;
   } catch (error) {
-    console.error(error);
-    throw new Error('Error al listar docentes');
+    manejarErrorDB(error, 'Error al listar docentes');
   }
 }
 
+/* =========================
+   CREAR
+========================= */
 async function crear(data, usuario_id) {
   try {
     const {
@@ -76,10 +82,13 @@ async function crear(data, usuario_id) {
       throw new Error('Ya existe un docente con ese CI');
     }
 
-    throw error;
+    manejarErrorDB(error, 'Error al crear docente');
   }
 }
 
+/* =========================
+   EDITAR
+========================= */
 async function editar(id, data, usuario_id) {
   try {
     const {
@@ -119,135 +128,148 @@ async function editar(id, data, usuario_id) {
       throw new Error('Ya existe un docente con ese CI');
     }
 
-    throw error;
+    manejarErrorDB(error, 'Error al editar docente');
   }
 }
 
+/* =========================
+   ELIMINAR
+========================= */
 async function eliminar(id, usuario_id) {
-  await db.query(
-    `
-    UPDATE docentes 
-    SET estado = 'Inactivo'
-    WHERE id = ?
-  `,
-    [id],
-  );
+  try {
+    await db.query(`UPDATE docentes SET estado = 'Inactivo' WHERE id = ?`, [
+      id,
+    ]);
 
-  await registrarAuditoria(
-    'docentes',
-    id,
-    'DELETE',
-    'Se desactivó docente',
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'docentes',
+      id,
+      'DELETE',
+      'Se desactivó docente',
+      usuario_id,
+    );
 
-  return { ok: true };
+    return { ok: true };
+  } catch (error) {
+    manejarErrorDB(error, 'Error al eliminar docente');
+  }
 }
 
+/* =========================
+   ACTIVAR
+========================= */
 async function activar(id, usuario_id) {
-  await db.query(
-    `
-    UPDATE docentes 
-    SET estado = 'Activo'
-    WHERE id = ?
-  `,
-    [id],
-  );
+  try {
+    await db.query(`UPDATE docentes SET estado = 'Activo' WHERE id = ?`, [id]);
 
-  await registrarAuditoria(
-    'docentes',
-    id,
-    'UPDATE',
-    'Se activó docente',
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'docentes',
+      id,
+      'UPDATE',
+      'Se activó docente',
+      usuario_id,
+    );
 
-  return { ok: true };
+    return { ok: true };
+  } catch (error) {
+    manejarErrorDB(error, 'Error al activar docente');
+  }
 }
 
+/* =========================
+   LISTAR ACTIVOS
+========================= */
 async function listarActivos(buscar = '') {
-  let sql = `
-    SELECT d.*, c.nombre AS carrera_nombre
-    FROM docentes d
-    LEFT JOIN carreras c ON c.id = d.carrera_id
-    WHERE d.estado = 'Activo'
-  `;
-
-  let params = [];
-
-  if (buscar) {
-    sql += `
-      AND (
-        d.nombre_completo LIKE ?
-        OR d.ci LIKE ?
-        OR d.correo LIKE ?
-        OR d.celular LIKE ?
-        OR d.nivel_academico LIKE ?
-        OR c.nombre LIKE ?
-      )
+  try {
+    let sql = `
+      SELECT d.*, c.nombre AS carrera_nombre
+      FROM docentes d
+      LEFT JOIN carreras c ON c.id = d.carrera_id
+      WHERE d.estado = 'Activo'
     `;
 
-    const filtro = `%${buscar}%`;
-    params = [filtro, filtro, filtro, filtro, filtro, filtro];
+    let params = [];
+
+    if (buscar) {
+      sql += `
+        AND (
+          d.nombre_completo LIKE ?
+          OR d.ci LIKE ?
+          OR d.correo LIKE ?
+          OR d.celular LIKE ?
+          OR d.nivel_academico LIKE ?
+          OR c.nombre LIKE ?
+        )
+      `;
+
+      const filtro = `%${buscar}%`;
+      params = [filtro, filtro, filtro, filtro, filtro, filtro];
+    }
+
+    sql += ' ORDER BY d.id DESC';
+
+    const [rows] = await db.query(sql, params);
+    return rows;
+  } catch (error) {
+    manejarErrorDB(error, 'Error al listar docentes activos');
   }
-
-  sql += ' ORDER BY d.id DESC';
-
-  const [rows] = await db.query(sql, params);
-  return rows;
 }
 
+/* =========================
+   IMPORTAR
+========================= */
 async function importar(datos, usuario_id) {
-  let insertados = 0;
-  let duplicados = [];
+  try {
+    let insertados = 0;
+    let duplicados = [];
 
-  for (const d of datos) {
-    try {
-      const [carrera] = await db.query(
-        'SELECT id FROM carreras WHERE nombre=?',
-        [d.carrera],
-      );
+    for (const d of datos) {
+      try {
+        const [carrera] = await db.query(
+          'SELECT id FROM carreras WHERE nombre=?',
+          [d.carrera],
+        );
 
-      if (carrera.length === 0) continue;
+        if (carrera.length === 0) continue;
 
-      await db.query(
-        `
-        INSERT INTO docentes
-        (nombre_completo, ci, nivel_academico, correo, celular, carrera_id)
-        VALUES (?,?,?,?,?,?)
-      `,
-        [
-          d.nombre_completo,
-          d.ci,
-          d.nivel_academico,
-          d.correo,
-          d.celular,
-          carrera[0].id,
-        ],
-      );
+        await db.query(
+          `
+          INSERT INTO docentes
+          (nombre_completo, ci, nivel_academico, correo, celular, carrera_id)
+          VALUES (?,?,?,?,?,?)
+        `,
+          [
+            d.nombre_completo,
+            d.ci,
+            d.nivel_academico,
+            d.correo,
+            d.celular,
+            carrera[0].id,
+          ],
+        );
 
-      insertados++;
-    } catch (error) {
-      if (error.code === 'ER_DUP_ENTRY') {
-        duplicados.push(d.ci);
-      } else {
-        throw error;
+        insertados++;
+      } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+          duplicados.push(d.ci);
+        } else {
+          throw error;
+        }
       }
     }
+
+    await registrarAuditoria(
+      'docentes',
+      0,
+      'IMPORT',
+      `Importación masiva de docentes (${insertados} insertados)`,
+      usuario_id,
+    );
+
+    return { insertados, duplicados };
+  } catch (error) {
+    manejarErrorDB(error, 'Error al importar docentes');
   }
-
-  await registrarAuditoria(
-    'docentes',
-    0,
-    'IMPORT',
-    `Importación masiva de docentes (${insertados} insertados)`,
-    usuario_id,
-  );
-
-  return {
-    insertados,
-    duplicados,
-  };
 }
 
 module.exports = {

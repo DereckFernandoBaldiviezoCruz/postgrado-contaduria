@@ -64,7 +64,7 @@ export default function Login({ setUsuario }) {
         {/* LOGO */}
 
         <div className="login-logo">
-          <img src="../public/logo.png" alt="logo" />
+          <img src="logo.png" alt="logo" />
         </div>
 
         <h2>Sistema de Postgrado</h2>

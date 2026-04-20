@@ -1,27 +1,32 @@
 const db = require('../db/db');
 const registrarAuditoria = require('./auditoria');
+const dbError = require('./dbError');
 
 /* =========================
    LISTAR
 ========================= */
 async function listar() {
-  const [rows] = await db.query(`
-    SELECT
-      t.id,
-      t.nombre_completo,
-      t.ci,
-      t.correo,
-      t.celular,
-      t.tipo,
-      t.nivel_academico,
-      t.docente_id,
-      d.nombre_completo AS docente_nombre
-    FROM tutores t
-    LEFT JOIN docentes d ON d.id = t.docente_id
-    ORDER BY t.nombre_completo ASC
-  `);
+  try {
+    const [rows] = await db.query(`
+      SELECT
+        t.id,
+        t.nombre_completo,
+        t.ci,
+        t.correo,
+        t.celular,
+        t.tipo,
+        t.nivel_academico,
+        t.docente_id,
+        d.nombre_completo AS docente_nombre
+      FROM tutores t
+      LEFT JOIN docentes d ON d.id = t.docente_id
+      ORDER BY t.nombre_completo ASC
+    `);
 
-  return rows;
+    return rows;
+  } catch (error) {
+    throw dbError(error, 'Error al listar tutores');
+  }
 }
 
 /* =========================
@@ -93,7 +98,7 @@ async function crear(data, usuario_id) {
       throw new Error('Ya existe un tutor con ese CI');
     }
 
-    throw error;
+    throw dbError(error, 'Error al crear tutor');
   }
 }
 
@@ -167,7 +172,7 @@ async function editar(id, data, usuario_id) {
       throw new Error('Ya existe un tutor con ese CI');
     }
 
-    throw error;
+    throw dbError(error, 'Error al editar tutor');
   }
 }
 
@@ -175,22 +180,26 @@ async function editar(id, data, usuario_id) {
    ELIMINAR
 ========================= */
 async function eliminar(id, usuario_id) {
-  const [[tutor]] = await db.query(
-    'SELECT nombre_completo FROM tutores WHERE id=?',
-    [id],
-  );
+  try {
+    const [[tutor]] = await db.query(
+      'SELECT nombre_completo FROM tutores WHERE id=?',
+      [id],
+    );
 
-  await db.query('DELETE FROM tutores WHERE id=?', [id]);
+    await db.query('DELETE FROM tutores WHERE id=?', [id]);
 
-  await registrarAuditoria(
-    'tutores',
-    id,
-    'DELETE',
-    `Se eliminó el tutor ${tutor?.nombre_completo || ''}`,
-    usuario_id,
-  );
+    await registrarAuditoria(
+      'tutores',
+      id,
+      'DELETE',
+      `Se eliminó el tutor ${tutor?.nombre_completo || ''}`,
+      usuario_id,
+    );
 
-  return { ok: true };
+    return { ok: true };
+  } catch (error) {
+    throw dbError(error, 'Error al eliminar tutor');
+  }
 }
 
 module.exports = { listar, crear, editar, eliminar };

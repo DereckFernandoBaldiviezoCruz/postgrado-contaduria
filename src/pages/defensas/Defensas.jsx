@@ -11,15 +11,37 @@ export default function Defensas() {
   const [modal, setModal] = useState(false);
   const [seleccion, setSeleccion] = useState(null);
   const [buscar, setBuscar] = useState('');
+  const [ultimoCount, setUltimoCount] = useState(0);
 
-  const cargar = async () => {
-    setData(await listarDefensas());
-    setCarga(await listarCargaDocentes());
+  const cargar = async (forzar = false) => {
+    try {
+      const nuevas = await listarDefensas();
+
+      // 🚫 Si hay modal abierto → no actualizar
+      if (modal && !forzar) return;
+
+      // 🔥 Solo actualizar si cambió algo
+      if (forzar || nuevas.length !== ultimoCount) {
+        setData(nuevas);
+        setUltimoCount(nuevas.length);
+
+        // también actualiza carga docente
+        const cargaNueva = await listarCargaDocentes();
+        setCarga(cargaNueva);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
-
   useEffect(() => {
-    cargar();
-  }, []);
+    cargar(true); // primera carga SIEMPRE
+
+    const interval = setInterval(() => {
+      cargar(); // sin forzar
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [modal]);
 
   const abrir = (row) => {
     setSeleccion(row);
@@ -209,9 +231,12 @@ export default function Defensas() {
 
       <ModalTribunal
         abierto={modal}
-        cerrar={() => setModal(false)}
+        cerrar={() => {
+          setModal(false);
+          cargar(true); // 🔥 recarga real al cerrar
+        }}
         recepcion={seleccion}
-        recargar={cargar}
+        recargar={() => cargar(true)}
       />
     </div>
   );

@@ -9,7 +9,6 @@ export default function AreaSwitcher({ usuario }) {
 
   const cargarArea = async () => {
     const area = await window.api.getArea();
-    console.log('AREA ACTUAL:', area);
     setAreaActual(area);
   };
 

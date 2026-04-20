@@ -1,6 +1,7 @@
 {
-  "name": "maestrias-app",
-  "version": "1.0.1",
+  "name": "postgrado-contaduria-usfx",
+  "version": "1.1.1",
+  "homepage": "./",
   "main": "electron/main.cjs",
   "build": {
     "appId": "com.tuapp.maestrias",
@@ -8,7 +9,7 @@
       "main": "electron/main.cjs"
     },
     "asar": true,
-    "productName": "Maestrias App",
+    "productName": "Postgrado Contaduria USFX",
     "directories": {
       "output": "dist"
     },
@@ -18,16 +19,19 @@
       "backend/**/*"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "electron/assets/icon.ico"
     },
     "nsis": {
-      "oneClick": false,
+      "oneClick": true,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": false
     },
     "publish": [
       {
-        "provider": "github"
+        "provider": "github",
+        "owner": "DereckFernandoBaldiviezoCruz",
+        "repo": "postgrado-contaduria"
       }
     ],
     "asarUnpack": [
@@ -36,7 +40,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TU_USUARIO/maestrias-app.git"
+    "url": "https://github.com/DereckFernandoBaldiviezoCruz/postgrado-contaduria.git"
   },
   "private": true,
   "scripts": {
@@ -44,12 +48,15 @@
     "build": "react-scripts build",
     "electron": "electron ./electron/main.cjs",
     "dev": "concurrently \"npm start\" \"npm run electron\"",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder --publish always"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "docx": "^9.6.1",
     "docxtemplater": "^3.68.3",
+    "dotenv": "^17.4.2",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.8.3",
     "file-saver": "^2.0.5",
     "mysql2": "^3.9.0",
     "pizzip": "^3.2.0",
