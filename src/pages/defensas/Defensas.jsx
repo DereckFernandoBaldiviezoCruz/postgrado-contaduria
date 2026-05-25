@@ -153,7 +153,7 @@ export default function Defensas() {
                 <td>{i + 1}</td>
                 <td>{r.estudiante}</td>
                 <td>{r.tema}</td>
-                <td>{r.tutor}</td>
+                <td>{r.docente}</td>
 
                 <td>
                   <span className={estadoClass(r.estado)}>

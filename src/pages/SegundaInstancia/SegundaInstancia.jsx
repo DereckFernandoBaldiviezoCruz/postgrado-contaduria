@@ -12,20 +12,35 @@ export default function SegundaInstancia() {
   const [actual, setActual] = useState(null);
   const [defensa, setDefensa] = useState('');
   const [buscar, setBuscar] = useState('');
+  const [ultimoCount, setUltimoCount] = useState(0);
   const esDiplomado = lista.length > 0 && lista[0].tipo === 'Diplomados';
 
-  const cargar = async (texto = '') => {
-    const res = await obtenerSegundaInstancia(texto);
-    setLista(res);
+  const cargar = async (texto = '', forzar = false) => {
+    try {
+      const nuevas = await obtenerSegundaInstancia(texto);
+
+      // 🚫 no actualizar si modal abierto
+      if (modal && !forzar) return;
+
+      // 🔥 solo si cambia cantidad
+      if (forzar || nuevas.length !== ultimoCount) {
+        setLista(nuevas);
+        setUltimoCount(nuevas.length);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
-    const delay = setTimeout(() => {
-      cargar(buscar);
-    }, 300);
+    cargar(buscar, true);
 
-    return () => clearTimeout(delay);
-  }, [buscar]);
+    const interval = setInterval(() => {
+      cargar(buscar);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [buscar, modal]);
 
   // ✅ CORREGIDO: no mezclar nota vieja con nueva
   const abrirModal = (fila) => {
@@ -64,7 +79,7 @@ export default function SegundaInstancia() {
       Swal.fire('Guardado', 'Segunda instancia registrada', 'success');
 
       setModal(false);
-      cargar();
+      cargar(buscar, true);
     } catch (err) {
       Swal.fire('Error', err.message, 'error');
     }
@@ -108,7 +123,7 @@ export default function SegundaInstancia() {
               </td>
             </tr>
           ) : (
-            lista.map((d, i) => {
+            lista.map((d) => {
               // ✅ calcular defensa anterior correctamente
               const defensaAnterior =
                 d.instancia > 1
@@ -116,7 +131,7 @@ export default function SegundaInstancia() {
                   : d.nota_defensa;
 
               return (
-                <tr key={i}>
+                <tr key={d.recepcion_id}>
                   <td>{d.estudiante}</td>
                   <td>{d.tema}</td>
 
@@ -212,7 +227,10 @@ export default function SegundaInstancia() {
             <button
               style={{ width: '100%', alignItems: 'center' }}
               className="btn-eliminar"
-              onClick={() => setModal(false)}
+              onClick={() => {
+                setModal(false);
+                cargar(buscar, true);
+              }}
             >
               Cancelar
             </button>

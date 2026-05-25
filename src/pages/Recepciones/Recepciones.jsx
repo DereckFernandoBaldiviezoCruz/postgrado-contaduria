@@ -13,19 +13,49 @@ export default function Recepciones() {
   const [estudianteSeleccionado, setEstudianteSeleccionado] = useState(null);
   const [modalHistorial, setModalHistorial] = useState(false);
   const [estudianteHistorial, setEstudianteHistorial] = useState(null);
+  const [ultimoCount, setUltimoCount] = useState(0);
 
-  const cargar = async () => {
-    const resp = await listarRecepciones(busqueda);
-    setData(resp || []);
+  const cargar = async (forzar = false) => {
+    try {
+      const resp = await listarRecepciones(busqueda);
+
+      const hayModalAbierto = modalOpen || modalHistorial || modalImprimir;
+
+      // 🚫 No recargar si hay modal abierto
+      if (hayModalAbierto && !forzar) return;
+
+      // 🔥 Solo actualizar si cambió algo
+      if (forzar || resp.length !== ultimoCount) {
+        setData(resp || []);
+        setUltimoCount(resp.length);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
-    const delay = setTimeout(() => cargar(), 10);
-    return () => clearTimeout(delay);
-  }, [busqueda]);
+    cargar(true); // primera carga
+
+    const interval = setInterval(() => {
+      cargar(); // automático
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [busqueda, modalOpen, modalHistorial, modalImprimir]);
 
   const abrirModal = (row) => {
-    setEstudianteSeleccionado(row);
+    // 🔥 Si terminó o fue rechazado → nueva recepción limpia
+    if (row.estado === 'Finalizado' || row.estado === 'Rechazado') {
+      setEstudianteSeleccionado({
+        estudiante_id: row.estudiante_id,
+        estudiante: row.estudiante,
+      });
+    } else {
+      // 🔥 edición normal
+      setEstudianteSeleccionado(row);
+    }
+
     setModalOpen(true);
   };
 
@@ -56,6 +86,7 @@ export default function Recepciones() {
         return 'estado pendiente';
     }
   };
+  const area = localStorage.getItem('area');
 
   return (
     <div>
@@ -96,8 +127,6 @@ export default function Recepciones() {
             <th>Programa</th>
             <th>Tema</th>
             <th>Tutor</th>
-            <th>Objetivo</th>
-            <th>Observaciones</th>
             <th>Fecha</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -133,10 +162,6 @@ export default function Recepciones() {
 
               <td>{r.tutor || '-'}</td>
 
-              <td>{r.objetivo || '-'}</td>
-
-              <td>{r.observaciones || '-'}</td>
-
               <td>
                 {r.fecha_recepcion
                   ? new Date(r.fecha_recepcion).toISOString().split('T')[0]
@@ -151,13 +176,17 @@ export default function Recepciones() {
 
               <td>
                 <div style={{ display: 'flex', gap: 5 }}>
-                  {!r.recepcion_id && (
+                  {(!r.recepcion_id ||
+                    r.estado === 'Finalizado' ||
+                    r.estado === 'Rechazado') && (
                     <button
                       style={{ justifyContent: 'center' }}
                       className="btn-agregar"
                       onClick={() => abrirModal(r)}
                     >
-                      Recepcionar
+                      {r.estado === 'Finalizado' || r.estado === 'Rechazado'
+                        ? 'Nueva Recepción'
+                        : 'Recepcionar'}
                     </button>
                   )}
 
@@ -171,7 +200,7 @@ export default function Recepciones() {
                         Editar
                       </button>
                     )}
-                  {r.recepcion_id && r.tutor && (
+                  {area === 'Maestrias' && r.recepcion_id && r.tutor && (
                     <button
                       className="btn-editar"
                       onClick={() => abrirModalImprimir(r)}
@@ -179,16 +208,6 @@ export default function Recepciones() {
                       Imprimir
                     </button>
                   )}
-
-                  {r.estado === 'Finalizado' ||
-                    (r.estado === 'Rechazado' && (
-                      <button
-                        className="btn-agregar"
-                        onClick={() => abrirModal(r)}
-                      >
-                        Nueva Recepción
-                      </button>
-                    ))}
 
                   <button
                     className="btn-editar"
@@ -208,20 +227,31 @@ export default function Recepciones() {
         cerrar={() => {
           setModalOpen(false);
           setEstudianteSeleccionado(null);
+          cargar(true); // 🔥 IMPORTANTE
         }}
         estudiante={estudianteSeleccionado}
-        recargar={cargar}
-        esEdicion={!!estudianteSeleccionado?.recepcion_id}
+        recargar={() => cargar(true)}
+        esEdicion={
+          !!estudianteSeleccionado?.recepcion_id &&
+          estudianteSeleccionado?.estado !== 'Finalizado' &&
+          estudianteSeleccionado?.estado !== 'Rechazado'
+        }
       />
       <ModalHistorialRecepciones
         abierto={modalHistorial}
-        cerrar={() => setModalHistorial(false)}
+        cerrar={() => {
+          setModalHistorial(false);
+          cargar(true); // 🔥 opcional pero recomendado
+        }}
         estudiante={estudianteHistorial}
       />
       {modalImprimir && (
         <ModalImprimirTutor
           data={recepcionSeleccionada}
-          cerrar={() => setModalImprimir(false)}
+          cerrar={() => {
+            setModalImprimir(false);
+            cargar(true); // 🔥 importante
+          }}
         />
       )}
     </div>

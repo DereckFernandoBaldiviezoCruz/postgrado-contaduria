@@ -60,6 +60,15 @@ export default function Login({ setUsuario }) {
 
   return (
     <div className="login-container">
+      {/* MENSAJE DE BIENVENIDA */}
+  <div className="login-header">
+    <h1>Bienvenido al Gestor de Maestrías y Diplomados</h1>
+
+    <p>
+      Sistema de gestión académica de la Unidad de Posgrado de la Facultad de
+      Contaduría Pública y Ciencias Financieras - USFX
+    </p>
+  </div>
       <div className="login-box">
         {/* LOGO */}
 
@@ -67,7 +76,7 @@ export default function Login({ setUsuario }) {
           <img src="logo.png" alt="logo" />
         </div>
 
-        <h2>Sistema de Postgrado</h2>
+        <h2>Ingreso</h2>
 
         <form onSubmit={entrar}>
           {/* USUARIO */}

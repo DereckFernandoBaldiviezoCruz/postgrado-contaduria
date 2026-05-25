@@ -16,11 +16,16 @@ async function listar() {
         p.nombre,
         p.gestion,
         p.version,
-        p.capacidad_maxima,
+        p.inscritos,
         p.carrera_id,
         p.estado,
         c.nombre AS carrera_nombre,
-        COUNT(DISTINCT r.estudiante_id) AS inscritos
+        COUNT(
+  DISTINCT CASE
+    WHEN r.estado = 'Finalizado'
+    THEN r.estudiante_id
+  END
+) AS defendidos
       FROM programas p
       LEFT JOIN carreras c ON c.id = p.carrera_id
       LEFT JOIN recepciones r ON r.programa_id = p.id
@@ -28,7 +33,7 @@ async function listar() {
       AND p.area = ?
       GROUP BY
         p.id, p.nombre, p.gestion, p.version,
-        p.capacidad_maxima, p.carrera_id, c.nombre
+        p.inscritos, p.carrera_id, c.nombre
       ORDER BY p.id DESC
     `,
       [area],
@@ -46,16 +51,16 @@ async function listar() {
 ================================ */
 async function crear(data, usuario_id) {
   try {
-    const { nombre, gestion, version, capacidad_maxima, carrera_id } = data;
+    const { nombre, gestion, version, inscritos, carrera_id } = data;
     const area = global.areaActual;
 
     const [result] = await db.query(
       `
       INSERT INTO programas
-      (nombre, gestion, version, capacidad_maxima, carrera_id, area)
+      (nombre, gestion, version, inscritos, carrera_id, area)
       VALUES (?,?,?,?,?,?)
     `,
-      [nombre, gestion, version, capacidad_maxima, carrera_id, area],
+      [nombre, gestion, version, inscritos, carrera_id, area],
     );
 
     await registrarAuditoria(
@@ -84,7 +89,7 @@ async function editar(id, data, usuario_id) {
         nombre=?,
         gestion=?,
         version=?,
-        capacidad_maxima=?,
+        inscritos=?,
         carrera_id=?
       WHERE id=?
     `,
@@ -92,7 +97,7 @@ async function editar(id, data, usuario_id) {
         data.nombre,
         data.gestion,
         data.version,
-        data.capacidad_maxima,
+        data.inscritos,
         data.carrera_id,
         id,
       ],
@@ -171,18 +176,23 @@ async function listarTodos() {
         p.nombre,
         p.gestion,
         p.version,
-        p.capacidad_maxima,
+        p.inscritos,
         p.carrera_id,
         p.estado,
         c.nombre AS carrera_nombre,
-        COUNT(DISTINCT r.estudiante_id) AS inscritos
+        COUNT(
+  DISTINCT CASE
+    WHEN r.estado = 'Finalizado'
+    THEN r.estudiante_id
+  END
+) AS defendidos
       FROM programas p
       LEFT JOIN carreras c ON c.id = p.carrera_id
       LEFT JOIN recepciones r ON r.programa_id = p.id
       WHERE p.area = ?
       GROUP BY
         p.id, p.nombre, p.gestion, p.version,
-        p.capacidad_maxima, p.carrera_id, c.nombre, p.estado
+        p.inscritos, p.carrera_id, c.nombre, p.estado
       ORDER BY p.id DESC
     `,
       [area],

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './modal.css';
+import Swal from 'sweetalert2';
 
 export default function ModalEstudiante({
   abierto,
@@ -34,7 +35,7 @@ export default function ModalEstudiante({
     if (estudianteEditar) {
       setNombre(estudianteEditar.nombre_completo);
       setCi(estudianteEditar.ci);
-      setCorreo(estudianteEditar.correo);
+      setCorreo(estudianteEditar.correo || '');
       setCelular(estudianteEditar.celular);
       setCarreraId(estudianteEditar.carrera_id);
     } else {
@@ -48,17 +49,87 @@ export default function ModalEstudiante({
 
   if (!abierto) return null;
 
+  const esCorreoValido = (email) => {
+    if (!email) return true; // ✅ vacío permitido
+
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
   /* =============================
      GUARDAR
   ==============================*/
   const handleSubmit = () => {
+    // 🔤 limpiar espacios
+    const nombreLimpio = nombre.trim();
+    const ciLimpio = ci.trim();
+    const correoLimpio = correo.trim();
+    const celularLimpio = celular.trim();
+
+    /* =============================
+     VALIDACIONES
+  ==============================*/
+
+    // ❌ Nombre vacío
+    if (!nombreLimpio) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El nombre es obligatorio',
+      });
+      return;
+    }
+
+    // ❌ Nombre con caracteres raros
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombreLimpio)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El nombre solo debe contener letras',
+      });
+      return;
+    }
+
+    // ❌ CI inválido
+    if (!/^\d+$/.test(ciLimpio)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El CI solo debe contener números',
+      });
+      return;
+    }
+
+    // ❌ Celular inválido (opcional)
+    if (celularLimpio && !/^\d+$/.test(celularLimpio)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El celular solo debe contener números',
+      });
+      return;
+    }
+
+    // ❌ Correo inválido
+    if (!esCorreoValido(correoLimpio)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El correo no es válido',
+      });
+      return;
+    }
+
+    /* =============================
+     TODO OK → GUARDAR
+  ==============================*/
     guardar({
       id: estudianteEditar?.id,
-      nombre_completo: nombre,
-      ci,
-      correo,
-      celular,
-      carrera_id: carreraId,
+      nombre_completo: nombreLimpio,
+      ci: ciLimpio,
+      correo: correoLimpio || null,
+      celular: celularLimpio,
+      carrera_id: carreraId || null,
     });
 
     cerrar();
@@ -71,13 +142,15 @@ export default function ModalEstudiante({
 
         <input
           value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          onChange={(e) =>
+            setNombre(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''))
+          }
           placeholder="Nombre Completo"
         />
 
         <input
           value={ci}
-          onChange={(e) => setCi(e.target.value)}
+          onChange={(e) => setCi(e.target.value.replace(/\D/g, ''))}
           placeholder="CI"
         />
 
@@ -89,7 +162,7 @@ export default function ModalEstudiante({
 
         <input
           value={celular}
-          onChange={(e) => setCelular(e.target.value)}
+          onChange={(e) => setCelular(e.target.value.replace(/\D/g, ''))}
           placeholder="Celular"
         />
 

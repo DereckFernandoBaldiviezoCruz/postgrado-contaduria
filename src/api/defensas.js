@@ -4,8 +4,8 @@ export const listarDefensas = async () => {
   return await window.api.listarDefensas();
 };
 
-export const listarCargaDocentes = async () => {
-  return await window.api.listarCargaDocentes();
+export const listarCargaDocentes = async (docenteExcluir) => {
+  return await window.api.listarCargaDocentes(docenteExcluir);
 };
 
 export const obtenerTribunal = async (id) => {

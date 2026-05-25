@@ -13,7 +13,7 @@ export default function ElegirArea({ setArea }) {
   return (
     <div className="pantalla-area">
       <div className="contenedor-area">
-        <h1>Seleccione el Área del Sistema</h1>
+        <h1>Seleccione el Área del Sistema para continuar</h1>
 
         <div className="botones-area">
           <button

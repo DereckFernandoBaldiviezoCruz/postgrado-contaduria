@@ -13,6 +13,7 @@ export default function ModalUsuario({
   const [password, setPassword] = useState('');
   const [rol, setRol] = useState('secretaria');
   const [area, setArea] = useState('MAESTRIAS');
+  const [mostrarPassword, setMostrarPassword] = useState(false);
 
   useEffect(() => {
     if (usuario) {
@@ -40,6 +41,7 @@ export default function ModalUsuario({
         id: usuario.id,
         nombre,
         usuario: user,
+        password,
         rol,
         area,
       });
@@ -68,51 +70,76 @@ export default function ModalUsuario({
     <div className="modalOverlay">
       <div className="modal">
         <h3>{esEdicion ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
+        <div className="campo-form">
+          <label>Nombre</label>
 
-        <input
-          placeholder="Nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-        />
-
-        <input
-          placeholder="Usuario"
-          value={user}
-          onChange={(e) => setUser(e.target.value)}
-        />
-
-        {!esEdicion && (
           <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Nombre"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
           />
-        )}
+        </div>
+        <div className="campo-form">
+          <label>Usuario</label>
 
-        <select
-          style={{ width: '100%' }}
-          value={rol}
-          onChange={(e) => setRol(e.target.value)}
-        >
-          <option value="Administrador">Administrador</option>
-          <option value="Apoyo Logistico">Apoyo Logistico</option>
-          <option value="Encargado de Recepciones">
-            Encargado de Recepciones
-          </option>
-          <option value="Encargado de Tribunales">
-            Encargado de Tribunales
-          </option>
-        </select>
-        <select
-          style={{ width: '100%' }}
-          value={area}
-          onChange={(e) => setArea(e.target.value)}
-        >
-          <option value="MAESTRIAS">MAESTRIAS</option>
-          <option value="DIPLOMADOS">DIPLOMADOS</option>
-          <option value="AMBOS">AMBOS</option>
-        </select>
+          <input
+            placeholder="Usuario"
+            value={user}
+            onChange={(e) => setUser(e.target.value)}
+          />
+        </div>
+
+        <div className="campo-form">
+          <label>Contraseña</label>
+
+          <div className="password-container">
+            <input
+              type={mostrarPassword ? 'text' : 'password'}
+              placeholder={
+                esEdicion ? 'Nueva contraseña (opcional)' : 'Contraseña'
+              }
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <button
+              type="button"
+              className="btn-password"
+              onClick={() => setMostrarPassword(!mostrarPassword)}
+            >
+              {mostrarPassword ? 'Ocultar' : 'Mostrar'}
+            </button>
+          </div>
+        </div>
+        <div className="campo-form">
+          <label>Rol</label>
+          <select
+            style={{ width: '100%' }}
+            value={rol}
+            onChange={(e) => setRol(e.target.value)}
+          >
+            <option value="Administrador">Administrador</option>
+            <option value="Apoyo Logistico">Apoyo Logistico</option>
+            <option value="Encargado de Recepciones">
+              Encargado de Recepciones
+            </option>
+            <option value="Encargado de Tribunales">
+              Encargado de Tribunales
+            </option>
+          </select>
+        </div>
+        <div className="campo-form">
+          <label>Área</label>
+          <select
+            style={{ width: '100%' }}
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+          >
+            <option value="MAESTRIAS">MAESTRIAS</option>
+            <option value="DIPLOMADOS">DIPLOMADOS</option>
+            <option value="AMBOS">AMBOS</option>
+          </select>
+        </div>
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
           <button className="btn-agregar" onClick={guardar}>

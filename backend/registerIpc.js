@@ -19,6 +19,8 @@ const usuarios = require('./controllers/usuarios.controller');
 const auditoria = require('./controllers/auditoria.controller');
 const segunda = require('./controllers/segunda.controller');
 const reportes = require('./controllers/reportes.controller');
+const pendientes = require('./controllers/pendientes');
+const pagos = require('./controllers/pagos');
 
 ipcMain.handle('auth:login', async (_, usuario, password) => {
   try {
@@ -57,7 +59,9 @@ function registerIpc() {
 
   ipcMain.handle('defensas:listar', () => defensas.listarDefensas());
 
-  ipcMain.handle('defensas:carga-docentes', () => defensas.cargaDocentes());
+  ipcMain.handle('defensas:carga-docentes', (_, docenteExcluir) =>
+    defensas.cargaDocentes(docenteExcluir),
+  );
 
   ipcMain.handle('defensas:obtener-tribunal', (_, recepcion_id) =>
     defensas.obtenerTribunal(recepcion_id),
@@ -348,20 +352,56 @@ ipcMain.handle('segunda:guardarSegundaInstancia', (_, data) => {
 
 /* ================= REPORTES ================= */
 
-ipcMain.handle('reportes:resumen', () => {
-  return reportes.resumenGeneral();
+ipcMain.handle('reportes:resumen', (_, gestion, mes, programa) => {
+  return reportes.resumenGeneral(gestion, mes, programa);
 });
 
-ipcMain.handle('reportes:mes', () => {
-  return reportes.recepcionesPorMes();
+ipcMain.handle('reportes:mes', (_, gestion) => {
+  return reportes.recepcionesPorMes(gestion);
 });
 
-ipcMain.handle('reportes:programa', () => {
-  return reportes.porPrograma();
+ipcMain.handle('reportes:programa', (_, gestion, mes) => {
+  return reportes.porPrograma(gestion, mes);
 });
 
 ipcMain.handle('reportes:carga', () => {
   return reportes.cargaDocentes();
+});
+
+ipcMain.handle('reportes:resumen-programa', (_, gestion, mes, programa) => {
+  return reportes.resumenPrograma(gestion, mes, programa);
+});
+
+ipcMain.handle('pendientes:obtener', async () => {
+  return await pendientes.obtenerPendientes();
+});
+
+ipcMain.handle('pendientes:areas', async () => {
+  return await pendientes.obtenerPendientesPorAreas();
+});
+
+/* ================= PAGOS ================= */
+
+ipcMain.handle('pagos:obtener-por-recepcion', (_, recepcion_id) =>
+  pagos.obtenerPorRecepcion(recepcion_id),
+);
+
+ipcMain.handle('pagos:crear', (_, data) => {
+  const usuario = global.usuarioActual?.id || null;
+
+  return pagos.crear(data, usuario);
+});
+
+ipcMain.handle('pagos:editar', (_, data) => {
+  const usuario = global.usuarioActual?.id || null;
+
+  return pagos.editar(data, usuario);
+});
+
+ipcMain.handle('pagos:eliminar', (_, id) => {
+  const usuario = global.usuarioActual?.id || null;
+
+  return pagos.eliminar(id, usuario);
 });
 
 module.exports = registerIpc;

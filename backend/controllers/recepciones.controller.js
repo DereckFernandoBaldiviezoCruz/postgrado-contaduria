@@ -20,23 +20,23 @@ async function listar(buscar = '') {
         r.observaciones,
         r.fecha_recepcion,
         r.estado,
-        r.tutor_id,
+        r.docente_id,
         r.programa_id,
 
         p.nombre AS programa,
-
-        t.nombre_completo AS tutor
+        d.nombre_completo AS tutor
 
       FROM estudiantes e
+
+      INNER JOIN estudiante_area ea 
+        ON ea.estudiante_id = e.id
 
       LEFT JOIN recepciones r 
         ON r.id = (
           SELECT r2.id
           FROM recepciones r2
-          INNER JOIN programas p2 ON p2.id = r2.programa_id
           WHERE r2.estudiante_id = e.id
-          AND p2.area = ?
-          AND r2.estado NOT IN ('Finalizado','Rechazado')
+          AND r2.area = ?
           ORDER BY r2.id DESC
           LIMIT 1
         )
@@ -44,32 +44,40 @@ async function listar(buscar = '') {
       LEFT JOIN programas p 
         ON p.id = r.programa_id
 
-      LEFT JOIN tutores t
-        ON t.id = r.tutor_id
+      LEFT JOIN docentes d
+        ON d.id = r.docente_id
+
+      WHERE ea.area = ?
+      AND ea.estado = 'Activo'
+
+      AND (
+        r.id IS NULL
+        OR r.estado = 'Recepcionado'
+        OR r.estado = 'Finalizado'
+        OR r.estado = 'Rechazado'
+      )
     `;
 
-    let params = [area];
+    let params = [area, area];
 
     if (buscar) {
       sql += `
-        WHERE e.estado='Activo'
         AND (
           e.nombre_completo LIKE ?
           OR p.nombre LIKE ?
           OR r.tema LIKE ?
-          OR t.nombre_completo LIKE ?
+          OR d.nombre_completo LIKE ?
         )
       `;
 
       const filtro = `%${buscar}%`;
-      params = [filtro, filtro, filtro, filtro];
-    } else {
-      sql += ` WHERE e.estado='Activo'`;
+      params.push(filtro, filtro, filtro, filtro);
     }
 
     sql += ` ORDER BY e.nombre_completo ASC`;
 
-    const [rows] = await db.query(sql, [area, ...params]);
+    const [rows] = await db.query(sql, params);
+
     return rows;
   } catch (error) {
     console.error(error);
@@ -82,9 +90,11 @@ async function listar(buscar = '') {
 ========================= */
 async function crear(data, usuario_id) {
   try {
+    const area = global.areaActual;
+
     const {
       estudiante_id,
-      tutor_id,
+      docente_id,
       programa_id,
       tema,
       objetivo,
@@ -92,20 +102,35 @@ async function crear(data, usuario_id) {
       fecha_recepcion,
     } = data;
 
+    // 🔥 VALIDAR QUE EL ESTUDIANTE PERTENECE AL AREA
+    const [[existe]] = await db.query(
+      `
+      SELECT id 
+      FROM estudiante_area
+      WHERE estudiante_id=? AND area=? AND estado='Activo'
+    `,
+      [estudiante_id, area],
+    );
+
+    if (!existe) {
+      throw new Error('El estudiante no pertenece a esta área');
+    }
+
     const [result] = await db.query(
       `
       INSERT INTO recepciones
-      (estudiante_id,programa_id,tutor_id,tema,objetivo,observaciones,fecha_recepcion,estado)
-      VALUES (?,?,?,?,?,?,?,'Recepcionado')
+      (estudiante_id,programa_id,docente_id,tema,objetivo,observaciones,fecha_recepcion,estado, area)
+      VALUES (?,?,?,?,?,?,?,'Recepcionado',?)
     `,
       [
         estudiante_id,
         programa_id,
-        tutor_id || null,
+        docente_id || null,
         tema,
         objetivo,
         observaciones,
         fecha_recepcion,
+        area,
       ],
     );
 
@@ -120,7 +145,7 @@ async function crear(data, usuario_id) {
     return { id: result.insertId };
   } catch (error) {
     console.error(error);
-    throw new Error(manejarErrorDB(error));
+    throw error; // 🔥 IMPORTANTE
   }
 }
 
@@ -129,25 +154,27 @@ async function crear(data, usuario_id) {
 ========================= */
 async function editar(id, data, usuario_id) {
   try {
+    const area = global.areaActual;
     await db.query(
       `
       UPDATE recepciones SET
         programa_id=?,
-        tutor_id=?,
+        docente_id=?,
         tema=?,
         objetivo=?,
         observaciones=?,
         fecha_recepcion=?
-      WHERE id=?
+      WHERE id=? AND area=?
     `,
       [
         data.programa_id,
-        data.tutor_id || null,
+        data.docente_id || null,
         data.tema,
         data.objetivo,
         data.observaciones,
         data.fecha_recepcion,
         id,
+        area,
       ],
     );
 
@@ -171,23 +198,24 @@ async function editar(id, data, usuario_id) {
 ========================= */
 async function cambiarEstado(id, estado, usuario_id) {
   try {
+    const area = global.areaActual;
     if (estado === 'Finalizado' || estado === 'Rechazado') {
       await db.query(
         `
         UPDATE recepciones
         SET estado=?, fecha_finalizacion=NOW()
-        WHERE id=?
+        WHERE id=? AND area=?
       `,
-        [estado, id],
+        [estado, id, area],
       );
     } else {
       await db.query(
         `
         UPDATE recepciones
         SET estado=?
-        WHERE id=?
+        WHERE id=? AND area=?
       `,
-        [estado, id],
+        [estado, id, area],
       );
     }
 
@@ -211,23 +239,31 @@ async function cambiarEstado(id, estado, usuario_id) {
 ========================= */
 async function historial(estudiante_id) {
   try {
+    const area = global.areaActual;
+
     const [rows] = await db.query(
       `
-      SELECT
-        r.id,
-        r.tema,
-        r.objetivo,
-        r.observaciones,
-        r.fecha_recepcion,
-        r.fecha_finalizacion,
-        r.estado,
-        t.nombre_completo AS tutor
-      FROM recepciones r
-      LEFT JOIN tutores t ON t.id = r.tutor_id
-      WHERE r.estudiante_id=?
-      ORDER BY r.id DESC
-    `,
-      [estudiante_id],
+  SELECT
+    r.id,
+    r.tema,
+    r.objetivo,
+    r.observaciones,
+    r.fecha_recepcion,
+    r.fecha_finalizacion,
+    r.estado,
+    d.nombre_completo AS tutor
+
+  FROM recepciones r
+
+  LEFT JOIN docentes d 
+    ON d.id = r.docente_id
+
+  WHERE r.estudiante_id = ?
+  AND r.area = ?
+
+  ORDER BY r.id DESC
+  `,
+      [estudiante_id, area],
     );
 
     return rows;

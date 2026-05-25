@@ -18,23 +18,40 @@ export default function CalificarMonografias() {
 
   const [buscar, setBuscar] = useState('');
 
-  const cargar = async (texto = '') => {
-    setLoading(true);
+  const cargar = async (texto = '', forzar = false, inicial = false) => {
+    try {
+      if (inicial) setLoading(true);
 
-    const res = await obtenerCalificaciones(texto);
+      const res = await obtenerCalificaciones(texto);
 
-    setLista(res);
+      // no actualizar con modal abierto
+      if (modal && !forzar) {
+        if (inicial) setLoading(false);
+        return;
+      }
 
-    setLoading(false);
+      // actualizar solo si cambió algo real
+      if (forzar || JSON.stringify(res) !== JSON.stringify(lista)) {
+        setLista(res || []);
+      }
+
+      if (inicial) setLoading(false);
+    } catch (error) {
+      console.error(error);
+
+      if (inicial) setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const delay = setTimeout(() => {
-      cargar(buscar);
-    }, 300);
+    cargar(buscar, true, true); // primera carga
 
-    return () => clearTimeout(delay);
-  }, [buscar]);
+    const interval = setInterval(() => {
+      cargar(buscar); // silencioso
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [buscar, modal]);
 
   const abrirModal = (fila) => {
     setActual(fila);
@@ -84,7 +101,7 @@ export default function CalificarMonografias() {
       Swal.fire('Guardado', 'Calificación registrada', 'success');
 
       setModal(false);
-      cargar();
+      cargar(buscar, true);
     }
   };
 
@@ -173,8 +190,8 @@ export default function CalificarMonografias() {
                 </td>
               </tr>
             ) : (
-              lista.map((d, i) => (
-                <tr key={i}>
+              lista.map((d) => (
+                <tr key={d.recepcion_id}>
                   <td>{d.estudiante}</td>
                   <td>{d.tema}</td>
                   {d.tipo === 'Diplomados' ? (
@@ -267,7 +284,10 @@ export default function CalificarMonografias() {
                 padding: '5px',
               }}
               className="btn-eliminar"
-              onClick={() => setModal(false)}
+              onClick={() => {
+                setModal(false);
+                cargar(buscar, true);
+              }}
             >
               Cancelar
             </button>

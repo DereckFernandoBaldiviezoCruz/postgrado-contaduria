@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ModalPerfil from '../components/ModalPerfil';
 import './Sidebar.css';
+import { obtenerPendientes } from '../api/pendientes';
 import { useLocation } from 'react-router-dom';
 import {
   FiUsers,
@@ -18,11 +19,32 @@ export default function Sidebar() {
     localStorage.removeItem('area');
     window.location.reload();
   };
+  const [pendientes, setPendientes] = useState({
+    tribunales: 0,
+    seguimiento: 0,
+    defensas: 0,
+    calificaciones: 0,
+    segundaInstancia: 0,
+  });
   const usuario = JSON.parse(localStorage.getItem('usuario'));
   // Detecta la ruta actual (#/estudiantes, etc)
 
   const location = useLocation();
+  const cargarPendientes = async () => {
+    try {
+      const data = await obtenerPendientes();
+      setPendientes(data || {});
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    cargarPendientes();
 
+    const interval = setInterval(cargarPendientes, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
   const linkClass = (ruta) =>
     location.pathname === ruta.replace('#', '')
       ? 'menu-item active'
@@ -83,6 +105,9 @@ export default function Sidebar() {
           <a href="#/defensas" className={linkClass('#/defensas')}>
             <FiPlusCircle size={20} />
             Asignar Tribunales
+            {pendientes.tribunales > 0 && (
+              <span className="badge-menu">{pendientes.tribunales}</span>
+            )}
           </a>
         )}
 
@@ -101,6 +126,9 @@ export default function Sidebar() {
           <a href="#/seguimiento" className={linkClass('#/seguimiento')}>
             <FiBarChart2 size={20} />
             Seguimiento
+            {pendientes.seguimiento > 0 && (
+              <span className="badge-menu">{pendientes.seguimiento}</span>
+            )}
           </a>
         )}
 
@@ -113,6 +141,9 @@ export default function Sidebar() {
           >
             <FiEdit size={20} />
             Asignación de Defensas
+            {pendientes.defensas > 0 && (
+              <span className="badge-menu">{pendientes.defensas}</span>
+            )}
           </a>
         )}
 
@@ -122,6 +153,9 @@ export default function Sidebar() {
           <a href="#/calificar" className={linkClass('#/calificar')}>
             <FiStar size={20} />
             Calificar
+            {pendientes.calificaciones > 0 && (
+              <span className="badge-menu">{pendientes.calificaciones}</span>
+            )}
           </a>
         )}
 
@@ -134,6 +168,9 @@ export default function Sidebar() {
           >
             <FiStar size={20} />
             Segunda Instancia
+            {pendientes.segundaInstancia > 0 && (
+              <span className="badge-menu">{pendientes.segundaInstancia}</span>
+            )}
           </a>
         )}
 

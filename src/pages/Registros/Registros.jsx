@@ -15,36 +15,35 @@ export default function Registros() {
 
   const [loading, setLoading] = useState(false);
   const [modoBusqueda, setModoBusqueda] = useState(false);
+  const [ultimoTotal, setUltimoTotal] = useState(0);
 
   /* =========================
      CARGAR NORMAL
   ========================= */
-  async function cargar() {
-    setLoading(true);
+  const cargarDatos = async (forzar = false, mostrarLoading = false) => {
+    try {
+      if (mostrarLoading) setLoading(true);
 
-    const res = await listarRegistros(pagina, limite);
+      let res;
 
-    setRegistros(res.data);
-    setTotal(res.total);
+      if (modoBusqueda) {
+        res = await filtrarRegistros(filtro, pagina, limite);
+      } else {
+        res = await listarRegistros(pagina, limite);
+      }
 
-    setLoading(false);
-  }
+      if (forzar || res.total !== ultimoTotal) {
+        setRegistros(res.data);
+        setTotal(res.total);
+        setUltimoTotal(res.total);
+      }
 
-  /* =========================
-     BUSCAR
-  ========================= */
-  async function buscar() {
-    setLoading(true);
-    setPagina(1);
-    setModoBusqueda(true);
-
-    const res = await filtrarRegistros(filtro, 1, limite);
-
-    setRegistros(res.data);
-    setTotal(res.total);
-
-    setLoading(false);
-  }
+      if (mostrarLoading) setLoading(false);
+    } catch (err) {
+      console.error(err);
+      if (mostrarLoading) setLoading(false);
+    }
+  };
 
   /* =========================
      LIMPIAR FILTRO
@@ -58,6 +57,10 @@ export default function Registros() {
 
     setModoBusqueda(false);
     setPagina(1);
+
+    setTimeout(() => {
+      cargarDatos(true);
+    }, 0);
   }
 
   /* =========================
@@ -74,22 +77,27 @@ export default function Registros() {
      EFECTOS
   ========================= */
   useEffect(() => {
-    if (modoBusqueda) {
-      filtrarRegistros(filtro, pagina, limite).then((res) => {
-        setRegistros(res.data);
-        setTotal(res.total);
-      });
-    } else {
-      cargar();
-    }
-  }, [pagina]);
+    cargarDatos(true, true); // primera carga con loading
+
+    const interval = setInterval(() => {
+      cargarDatos(false, false); // 🔥 sin loading (no parpadea)
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [pagina, modoBusqueda]);
+
+  async function buscar() {
+    setPagina(1);
+    setModoBusqueda(true);
+    await cargarDatos(true, true);
+  }
 
   /* =========================
      UI
   ========================= */
   return (
     <div className="p-4">
-      <h2>Registros del Sistema</h2>
+      <h2 className="tituloEstudiantes">Registros del Sistema</h2>
 
       {/* 🔹 FILTROS */}
       <div

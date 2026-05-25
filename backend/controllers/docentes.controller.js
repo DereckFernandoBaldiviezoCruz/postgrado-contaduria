@@ -59,13 +59,48 @@ async function crear(data, usuario_id) {
       carrera_id,
     } = data;
 
+    // =========================
+    // VALIDACIONES
+    // =========================
+
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre_completo)) {
+      throw new Error('Nombre inválido');
+    }
+
+    if (!/^[0-9]+$/.test(ci)) {
+      throw new Error('El CI solo debe contener números');
+    }
+
+    if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      throw new Error('Correo no válido');
+    }
+
+    if (celular && !/^[0-9]+$/.test(celular)) {
+      throw new Error('Celular inválido');
+    }
+
+    if (!nivel_academico) {
+      throw new Error('Nivel académico obligatorio');
+    }
+
+    // =========================
+    // INSERT
+    // =========================
+
     const [result] = await db.query(
       `
       INSERT INTO docentes
       (nombre_completo, ci, nivel_academico, correo, celular, carrera_id)
       VALUES (?,?,?,?,?,?)
     `,
-      [nombre_completo, ci, nivel_academico, correo, celular, carrera_id],
+      [
+        nombre_completo,
+        ci,
+        nivel_academico,
+        correo || null,
+        celular,
+        carrera_id || null,
+      ],
     );
 
     await registrarAuditoria(
@@ -82,7 +117,7 @@ async function crear(data, usuario_id) {
       throw new Error('Ya existe un docente con ese CI');
     }
 
-    manejarErrorDB(error, 'Error al crear docente');
+    throw error; // 🔥 IMPORTANTE
   }
 }
 
@@ -222,15 +257,54 @@ async function importar(datos, usuario_id) {
   try {
     let insertados = 0;
     let duplicados = [];
+    let errores = [];
 
     for (const d of datos) {
       try {
-        const [carrera] = await db.query(
-          'SELECT id FROM carreras WHERE nombre=?',
-          [d.carrera],
-        );
+        // =========================
+        // VALIDACIONES
+        // =========================
 
-        if (carrera.length === 0) continue;
+        if (!d.nombre_completo || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(d.nombre_completo)) {
+          errores.push(`Nombre inválido: ${d.nombre_completo}`);
+          continue;
+        }
+
+        if (!d.ci || !/^[0-9]+$/.test(d.ci)) {
+          errores.push(`CI inválido: ${d.ci}`);
+          continue;
+        }
+
+        if (d.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.correo)) {
+          errores.push(`Correo inválido: ${d.correo}`);
+          continue;
+        }
+
+        if (d.celular && !/^[0-9]+$/.test(d.celular)) {
+          errores.push(`Celular inválido: ${d.celular}`);
+          continue;
+        }
+
+        // =========================
+        // CARRERA (OPCIONAL)
+        // =========================
+
+        let carreraId = null;
+
+        if (d.carrera) {
+          const [carrera] = await db.query(
+            'SELECT id FROM carreras WHERE nombre=?',
+            [d.carrera],
+          );
+
+          if (carrera.length > 0) {
+            carreraId = carrera[0].id;
+          }
+        }
+
+        // =========================
+        // INSERT
+        // =========================
 
         await db.query(
           `
@@ -241,10 +315,10 @@ async function importar(datos, usuario_id) {
           [
             d.nombre_completo,
             d.ci,
-            d.nivel_academico,
-            d.correo,
+            d.nivel_academico || null,
+            d.correo || null,
             d.celular,
-            carrera[0].id,
+            carreraId,
           ],
         );
 
@@ -253,7 +327,7 @@ async function importar(datos, usuario_id) {
         if (error.code === 'ER_DUP_ENTRY') {
           duplicados.push(d.ci);
         } else {
-          throw error;
+          errores.push(`Error en CI ${d.ci}`);
         }
       }
     }
@@ -262,11 +336,15 @@ async function importar(datos, usuario_id) {
       'docentes',
       0,
       'IMPORT',
-      `Importación masiva de docentes (${insertados} insertados)`,
+      `Importación docentes (${insertados} insertados)`,
       usuario_id,
     );
 
-    return { insertados, duplicados };
+    return {
+      insertados,
+      duplicados,
+      errores,
+    };
   } catch (error) {
     manejarErrorDB(error, 'Error al importar docentes');
   }

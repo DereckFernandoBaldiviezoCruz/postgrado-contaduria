@@ -8,6 +8,7 @@
 
   overflow-y: auto;
   overflow-x: auto;
+  z-index: 1000;
 }
 
 .modal-content {

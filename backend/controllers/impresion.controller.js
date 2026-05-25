@@ -28,13 +28,13 @@ async function imprimirTutor(data) {
       SELECT 
         r.tema,
         p.nombre as programa,
-        t.nombre_completo as tutor,
-        t.nivel_academico,
+        d.nombre_completo as tutor,
+        d.nivel_academico,
         e.nombre_completo as estudiante
       FROM recepciones r
       JOIN estudiantes e ON e.id = r.estudiante_id
       JOIN programas p ON p.id = r.programa_id
-      JOIN tutores t ON t.id = r.tutor_id
+      JOIN docentes d ON d.id = r.docente_id
       WHERE r.id=?
       `,
       [recepcion_id],
@@ -166,6 +166,14 @@ async function imprimirTutor(data) {
               alignment: AlignmentType.CENTER,
               children: [texto('Coordinadora Unidad de Posgrado', true)],
             }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [texto('Facultad de Contaduría Pública', true)],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [texto('y Ciencias Financieras', true)],
+            }),
           ],
         },
       ],
@@ -173,7 +181,7 @@ async function imprimirTutor(data) {
 
     const buffer = await Packer.toBuffer(doc);
 
-    const nombreArchivo = `CITE_${numero}_${d.tutor}.docx`;
+    const nombreArchivo = `Cite ${numero} - DESIGNACION DE TUTOR - ${d.tutor}.docx`;
     const ruta = path.join(carpetaDestino, nombreArchivo);
 
     fs.writeFileSync(ruta, buffer);

@@ -1,20 +1,19 @@
-import { useEffect, useState } from "react";
-import { listarCarreras } from "../api/carreras";
-import "./modal.css";
+import { useEffect, useState } from 'react';
+import { listarCarreras } from '../api/carreras';
+import './modal.css';
 
 export default function ModalPrograma({
   abierto,
   cerrar,
   guardar,
-  programaEditar
+  programaEditar,
 }) {
-
   const [form, setForm] = useState({
-    nombre: "",
-    gestion: "",
-    version: "",
-    capacidad_maxima: "",
-    carrera_id: ""
+    nombre: '',
+    gestion: '',
+    version: '',
+    inscritos: '',
+    carrera_id: '',
   });
 
   const [carreras, setCarreras] = useState([]);
@@ -35,14 +34,21 @@ export default function ModalPrograma({
   =============================== */
   useEffect(() => {
     if (programaEditar) {
-      setForm(programaEditar);
+      setForm({
+        id: programaEditar.id,
+        nombre: programaEditar.nombre || '',
+        gestion: programaEditar.gestion || '',
+        version: programaEditar.version || '',
+        inscritos: programaEditar.inscritos || '',
+        carrera_id: programaEditar.carrera_id || '',
+      });
     } else {
       setForm({
-        nombre: "",
-        gestion: "",
-        version: "",
-        capacidad_maxima: "",
-        carrera_id: ""
+        nombre: '',
+        gestion: '',
+        version: '',
+        inscritos: '',
+        carrera_id: '',
       });
     }
   }, [programaEditar]);
@@ -55,7 +61,7 @@ export default function ModalPrograma({
   const handleChange = (e) => {
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -64,19 +70,19 @@ export default function ModalPrograma({
   =============================== */
   const handleSubmit = (e) => {
     e.preventDefault();
-    guardar(form);
+
+    guardar({
+      ...form,
+      carrera_id: form.carrera_id || null,
+    });
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal">
-
-        <h3>
-          {programaEditar ? "Editar Programa" : "Nuevo Programa"}
-        </h3>
+        <h3>{programaEditar ? 'Editar Programa' : 'Nuevo Programa'}</h3>
 
         <form onSubmit={handleSubmit}>
-
           <input
             name="nombre"
             placeholder="Nombre"
@@ -103,13 +109,12 @@ export default function ModalPrograma({
 
           <input
             type="number"
-            name="capacidad_maxima"
-            placeholder="Capacidad Máxima"
-            value={form.capacidad_maxima}
+            name="inscritos"
+            placeholder="Inscritos"
+            value={form.inscritos}
             onChange={handleChange}
             required
           />
-
 
           {/* SELECT CARRERA */}
           <select
@@ -117,14 +122,13 @@ export default function ModalPrograma({
             value={form.carrera_id}
             onChange={handleChange}
             style={{
-    width: "95%",
-    boxSizing: "border-box"
-  }}
-            required
+              width: '95%',
+              boxSizing: 'border-box',
+            }}
           >
-            <option value="">Seleccione Carrera</option>
+            <option value="">Sin carrera</option>
 
-            {carreras.map(c => (
+            {carreras.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nombre}
               </option>
@@ -132,17 +136,21 @@ export default function ModalPrograma({
           </select>
 
           <div className="modal-acciones">
-            <button type="submit" className="btn-agregar" style={{
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%"
-  }}>
+            <button
+              type="submit"
+              className="btn-agregar"
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+              }}
+            >
               Guardar
             </button>
 
             <button
-            style={{justifyContent:"center", width:"100%"}}
+              style={{ justifyContent: 'center', width: '100%' }}
               type="button"
               className="btn-eliminar"
               onClick={cerrar}
@@ -150,7 +158,6 @@ export default function ModalPrograma({
               Cancelar
             </button>
           </div>
-
         </form>
       </div>
     </div>

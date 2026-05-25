@@ -59,7 +59,7 @@ export default function ModalImprimir({data,cerrar}){
         <h3>Generar Invitaciones</h3>
 
         <input
-          placeholder="Número inicial (ej: 5)"
+          placeholder="Número inicial (ej: 5 genera Cites 5,6,7)"
           value={numero}
           onChange={e=>setNumero(e.target.value)}
         />

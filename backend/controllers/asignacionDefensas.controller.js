@@ -7,27 +7,27 @@ async function obtenerDefensas(buscar = '') {
     const area = global.areaActual;
 
     let sql = `
-    SELECT 
-      r.id AS recepcion_id,
-      e.id AS estudiante_id,
-      e.nombre_completo AS estudiante,
-      p.nombre AS programa,
-      r.tema,
-      DATE_FORMAT(r.fecha_recepcion,'%Y-%m-%d') AS fecha_recepcion,
-      r.observaciones,
-      r.estado,
-      t.id AS tutor_id,
-      t.nombre_completo AS tutor,
-      d.id AS defensa_id,
-      IFNULL(DATE_FORMAT(d.fecha,'%Y-%m-%d'),'-') AS fecha_defensa
-    FROM recepciones r
-    JOIN estudiantes e ON e.id = r.estudiante_id
-    LEFT JOIN programas p ON p.id = r.programa_id
-    LEFT JOIN tutores t ON t.id = r.tutor_id
-    LEFT JOIN defensas d ON d.recepcion_id = r.id
-    WHERE r.estado IN ('Aceptado','Programada')
-    AND p.area = ?
-    `;
+SELECT 
+  r.id AS recepcion_id,
+  e.id AS estudiante_id,
+  e.nombre_completo AS estudiante,
+  p.nombre AS programa,
+  r.tema,
+  DATE_FORMAT(r.fecha_recepcion,'%Y-%m-%d') AS fecha_recepcion,
+  r.observaciones,
+  r.estado,
+  r.docente_id AS tutor_id,
+  d.nombre_completo AS tutor,
+  df.id AS defensa_id,
+  IFNULL(DATE_FORMAT(df.fecha,'%Y-%m-%d'),'-') AS fecha_defensa
+FROM recepciones r
+JOIN estudiantes e ON e.id = r.estudiante_id
+LEFT JOIN programas p ON p.id = r.programa_id
+LEFT JOIN docentes d ON d.id = r.docente_id
+LEFT JOIN defensas df ON df.recepcion_id = r.id
+WHERE r.estado IN ('Aceptado','Programada')
+AND p.area = ?
+`;
 
     let params = [area];
 
@@ -37,7 +37,7 @@ async function obtenerDefensas(buscar = '') {
         e.nombre_completo LIKE ?
         OR r.tema LIKE ?
         OR p.nombre LIKE ?
-        OR t.nombre_completo LIKE ?
+        OR d.nombre_completo LIKE ?
       )
       `;
       const filtro = `%${buscar}%`;
@@ -46,7 +46,7 @@ async function obtenerDefensas(buscar = '') {
 
     sql += ` ORDER BY
       CASE
-      WHEN d.fecha IS NULL THEN 0
+      WHEN df.fecha IS NULL THEN 0
       ELSE 1
       END,
       e.nombre_completo ASC`;

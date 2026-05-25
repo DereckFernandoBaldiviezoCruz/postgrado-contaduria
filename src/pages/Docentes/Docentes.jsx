@@ -171,6 +171,13 @@ export default function Docentes() {
         resultado.duplicados.forEach((ci) => {
           mensaje += `• CI ${ci}\n`;
         });
+        if (resultado.errores.length > 0) {
+  mensaje += `\n\nErrores:\n`;
+
+  resultado.errores.forEach((e) => {
+    mensaje += `• ${e}\n`;
+  });
+}
       }
 
       Swal.fire({

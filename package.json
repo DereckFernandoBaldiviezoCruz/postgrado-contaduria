@@ -1,15 +1,20 @@
 {
-  "name": "postgrado-contaduria-usfx",
-  "version": "1.1.1",
+  "name": "posgrado-contaduria-usfx",
+  "version": "1.4.7",
+  "description": "Sistema de gestión de maestrías y diplomados de posgrado, facultad de contaduría",
+  "author": {
+    "name": "Dereck Fernando Baldiviezo Cruz",
+    "email": "dereck120120120@gmail.com"
+  },
   "homepage": "./",
   "main": "electron/main.cjs",
   "build": {
-    "appId": "com.tuapp.maestrias",
+    "appId": "com.usfx.maestrias",
     "extraMetadata": {
       "main": "electron/main.cjs"
     },
     "asar": true,
-    "productName": "Postgrado Contaduria USFX",
+    "productName": "Posgrado Contaduria USFX",
     "directories": {
       "output": "dist"
     },
@@ -17,6 +22,11 @@
       "build/**/*",
       "electron/**/*",
       "backend/**/*"
+    ],
+    "asarUnpack": [
+      "backend/db/ca.pem",
+      "backend/templates/**/*",
+      "node_modules/puppeteer/**/*"
     ],
     "win": {
       "target": "nsis",
@@ -33,9 +43,6 @@
         "owner": "DereckFernandoBaldiviezoCruz",
         "repo": "postgrado-contaduria"
       }
-    ],
-    "asarUnpack": [
-      "backend/db/ca.pem"
     ]
   },
   "repository": {

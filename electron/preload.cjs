@@ -61,7 +61,8 @@ contextBridge.exposeInMainWorld('api', {
 
   listarDefensas: () => ipcRenderer.invoke('defensas:listar'),
 
-  listarCargaDocentes: () => ipcRenderer.invoke('defensas:carga-docentes'),
+  listarCargaDocentes: (docenteExcluir = null) =>
+    ipcRenderer.invoke('defensas:carga-docentes', docenteExcluir),
 
   obtenerTribunal: (id) => ipcRenderer.invoke('defensas:obtener-tribunal', id),
 
@@ -177,9 +178,34 @@ contextBridge.exposeInMainWorld('api', {
   guardarSegundaInstancia: (data) =>
     ipcRenderer.invoke('segunda:guardarSegundaInstancia', data),
 
-  obtenerResumen: () => ipcRenderer.invoke('reportes:resumen'),
-  obtenerPorMes: () => ipcRenderer.invoke('reportes:mes'),
-  obtenerPorPrograma: () => ipcRenderer.invoke('reportes:programa'),
+  obtenerResumen: (gestion, mes, programa) =>
+    ipcRenderer.invoke('reportes:resumen', gestion, mes, programa),
+  obtenerPorMes: (gestion) => ipcRenderer.invoke('reportes:mes', gestion),
+  obtenerPorPrograma: (gestion, mes) =>
+    ipcRenderer.invoke('reportes:programa', gestion, mes),
   obtenerCargaDocentes: () => ipcRenderer.invoke('reportes:carga'),
   onMessage: (callback) => ipcRenderer.on('msg', callback),
+
+  obtenerResumenPrograma: (gestion, mes, programa) =>
+    ipcRenderer.invoke('reportes:resumen-programa', gestion, mes, programa),
+
+  onUpdateAvailable: (cb) => ipcRenderer.on('update_available', cb),
+  onUpdateProgress: (cb) =>
+    ipcRenderer.on('update_progress', (_, porcentaje) => cb(porcentaje)),
+  instalar: () => ipcRenderer.send('instalar_actualizacion'),
+
+  obtenerPendientes: () => ipcRenderer.invoke('pendientes:obtener'),
+
+  obtenerPendientesPorAreas: () => ipcRenderer.invoke('pendientes:areas'),
+
+  /* ================= PAGOS ================= */
+
+  obtenerPagoRecepcion: (recepcion_id) =>
+    ipcRenderer.invoke('pagos:obtener-por-recepcion', recepcion_id),
+
+  crearPago: (data) => ipcRenderer.invoke('pagos:crear', data),
+
+  editarPago: (data) => ipcRenderer.invoke('pagos:editar', data),
+
+  eliminarPago: (id) => ipcRenderer.invoke('pagos:eliminar', id),
 });

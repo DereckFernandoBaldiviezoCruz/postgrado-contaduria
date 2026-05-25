@@ -50,14 +50,27 @@ async function crear(data) {
 ========================= */
 async function editar(id, data) {
   try {
-    await db.query(
-      `
-      UPDATE usuarios
-      SET nombre=?,usuario=?,rol=?,area=?
-      WHERE id=?
-      `,
-      [data.nombre, data.usuario, data.rol, data.area, id],
-    );
+    if (data.password) {
+      const hash = await bcrypt.hash(data.password, 10);
+
+      await db.query(
+        `
+        UPDATE usuarios
+        SET nombre=?,usuario=?,password=?,rol=?,area=?
+        WHERE id=?
+        `,
+        [data.nombre, data.usuario, hash, data.rol, data.area, id],
+      );
+    } else {
+      await db.query(
+        `
+        UPDATE usuarios
+        SET nombre=?,usuario=?,rol=?,area=?
+        WHERE id=?
+        `,
+        [data.nombre, data.usuario, data.rol, data.area, id],
+      );
+    }
 
     return { ok: true };
   } catch (error) {

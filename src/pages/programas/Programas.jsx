@@ -116,8 +116,8 @@ export default function Programas() {
             <th>Nombre</th>
             <th>Gestión</th>
             <th>Versión</th>
-            <th>Capacidad</th>
             <th>Inscritos</th>
+            <th>Defendidos</th>
             <th>Carrera</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -131,9 +131,9 @@ export default function Programas() {
               <td>{p.nombre}</td>
               <td>{p.gestion}</td>
               <td>{p.version}</td>
-              <td>{p.capacidad_maxima}</td>
               <td>{p.inscritos}</td>
-              <td>{p.carrera_nombre}</td>
+              <td>{p.defendidos}</td>
+              <td>{p.carrera_nombre || 'Sin carrera'}</td>
 
               <td>
                 <span

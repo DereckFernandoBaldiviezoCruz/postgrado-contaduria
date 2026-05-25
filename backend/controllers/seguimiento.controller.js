@@ -1,10 +1,10 @@
 const db = require('../db/db');
-const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 const registrarAuditoria = require('./auditoria');
 const QRCode = require('qrcode');
 const dbError = require('./dbError');
+const { BrowserWindow } = require('electron');
 
 /* =========================
    FUNCIONES AUXILIARES
@@ -67,11 +67,11 @@ async function listar(buscar = '') {
         r.tema titulo,
         r.fecha_recepcion,
         e.nombre_completo estudiante,
-        t.nombre_completo tutor,
+        d.nombre_completo tutor,
         r.estado
       FROM recepciones r
       JOIN estudiantes e ON e.id=r.estudiante_id
-      LEFT JOIN tutores t ON t.id=r.tutor_id
+      LEFT JOIN docentes d ON d.id=r.docente_id
       JOIN programas p ON p.id=r.programa_id
     `;
 
@@ -85,7 +85,7 @@ async function listar(buscar = '') {
         AND (
           e.nombre_completo LIKE ?
           OR r.tema LIKE ?
-          OR t.nombre_completo LIKE ?
+          OR d.nombre_completo LIKE ?
         )
       `;
 
@@ -210,14 +210,14 @@ async function imprimir(data, usuario_id) {
       SELECT
         r.tema,
         p.nombre AS programa,
-        c.nombre AS carrera,
+        COALESCE(c.nombre, '') AS carrera,
         e.nombre_completo AS estudiante,
-        t.nombre_completo AS tutor
+        d.nombre_completo AS tutor
       FROM recepciones r
       JOIN estudiantes e ON e.id = r.estudiante_id
       JOIN programas p ON p.id = r.programa_id
-      JOIN carreras c ON c.id = p.carrera_id
-      LEFT JOIN tutores t ON t.id = r.tutor_id
+      LEFT JOIN carreras c ON c.id = p.carrera_id
+      LEFT JOIN docentes d ON d.id = r.docente_id
       WHERE r.id = ?
       `,
       [recepcion_id],
@@ -269,17 +269,11 @@ async function imprimir(data, usuario_id) {
       path.join(__dirname, '../templates/invitacion.html'),
       'utf8',
     );
+
     const formularioTemplate = fs.readFileSync(
       path.join(__dirname, '../templates/formulario.html'),
       'utf8',
     );
-
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
-
-    const page = await browser.newPage();
 
     let numeroActual = parseInt(numero);
     const archivos = [];
@@ -288,6 +282,10 @@ async function imprimir(data, usuario_id) {
     const qrBase64 = await QRCode.toDataURL(
       'https://posgrado.usfx.bo/modalidad-investigacion-diplomado/',
     );
+
+    /* =========================
+   GENERAR INVITACIONES
+========================= */
 
     for (const tr of tribunales) {
       const html = template
@@ -304,19 +302,35 @@ async function imprimir(data, usuario_id) {
         .replaceAll('{{numero}}', numeroActual)
         .replaceAll('{{firmaBase64}}', qrBase64);
 
-      await page.setContent(html, { waitUntil: 'domcontentloaded' });
+      const pdfWindow = new BrowserWindow({
+        show: false,
+        webPreferences: {
+          nodeIntegration: true,
+        },
+      });
+
+      await pdfWindow.loadURL(
+        `data:text/html;charset=utf-8,${encodeURIComponent(html)}`,
+      );
+
+      const pdfData = await pdfWindow.webContents.printToPDF({
+        printBackground: true,
+      });
 
       const nombreArchivo = `INVITACION_${tr.rol}_${tr.nombre}_${numeroActual}.pdf`;
 
-      await page.pdf({
-        path: path.join(carpetaDestino, nombreArchivo),
-        printBackground: true,
-        margin: { top: '20mm', bottom: '20mm', left: '25mm', right: '25mm' },
-      });
+      fs.writeFileSync(path.join(carpetaDestino, nombreArchivo), pdfData);
+
+      pdfWindow.close();
 
       archivos.push(numeroActual);
+
       numeroActual++;
     }
+
+    /* =========================
+   FORMULARIO
+========================= */
 
     const htmlFormulario = formularioTemplate
       .replaceAll('{{programa}}', info.programa || '')
@@ -329,15 +343,27 @@ async function imprimir(data, usuario_id) {
       .replaceAll('{{fechaTexto}}', fechaDoc)
       .replaceAll('{{anioActual}}', anioActual);
 
-    await page.setContent(htmlFormulario, { waitUntil: 'domcontentloaded' });
-
-    await page.pdf({
-      path: path.join(carpetaDestino, `FORMULARIO_${temaSafe}.pdf`),
-      printBackground: true,
-      margin: { top: '20mm', bottom: '20mm', left: '25mm', right: '25mm' },
+    const pdfWindowFormulario = new BrowserWindow({
+      show: false,
+      webPreferences: {
+        nodeIntegration: true,
+      },
     });
 
-    await browser.close();
+    await pdfWindowFormulario.loadURL(
+      `data:text/html;charset=utf-8,${encodeURIComponent(htmlFormulario)}`,
+    );
+
+    const pdfFormulario = await pdfWindowFormulario.webContents.printToPDF({
+      printBackground: true,
+    });
+
+    fs.writeFileSync(
+      path.join(carpetaDestino, `FORMULARIO_${temaSafe}.pdf`),
+      pdfFormulario,
+    );
+
+    pdfWindowFormulario.close();
 
     await registrarAuditoria(
       'recepciones',
@@ -349,7 +375,12 @@ async function imprimir(data, usuario_id) {
 
     return { ok: true, archivos };
   } catch (error) {
-    throw dbError(error);
+    console.error('ERROR IMPRIMIR:', error);
+
+    return {
+      ok: false,
+      error: error.message,
+    };
   }
 }
 

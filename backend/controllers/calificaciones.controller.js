@@ -42,10 +42,13 @@ async function obtenerCalificaciones(buscar = '') {
     AND d.fecha <= CURDATE()
 
     AND r.fecha_recepcion = (
-      SELECT MAX(r2.fecha_recepcion)
-      FROM recepciones r2
-      WHERE r2.estudiante_id = r.estudiante_id
-    )
+  SELECT MAX(r2.fecha_recepcion)
+  FROM recepciones r2
+  JOIN programas p2
+    ON p2.id = r2.programa_id
+  WHERE r2.estudiante_id = r.estudiante_id
+  AND p2.area = p.area
+)
 
     AND (
       c.id IS NULL 

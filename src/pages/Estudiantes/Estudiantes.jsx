@@ -167,13 +167,19 @@ export default function Estudiantes() {
 
       let mensaje = `${resultado.insertados} estudiantes importados`;
 
-      if (resultado.duplicados.length > 0) {
-        mensaje += `\n\n${resultado.duplicados.length} duplicados:\n`;
+if (resultado.duplicados.length > 0) {
+  mensaje += `\n\n${resultado.duplicados.length} duplicados:\n`;
+  resultado.duplicados.forEach((ci) => {
+    mensaje += `• CI ${ci}\n`;
+  });
+}
 
-        resultado.duplicados.forEach((ci) => {
-          mensaje += `• CI ${ci}\n`;
-        });
-      }
+if (resultado.invalidos?.length > 0) {
+  mensaje += `\n\n${resultado.invalidos.length} inválidos:\n`;
+  resultado.invalidos.slice(0, 10).forEach((err) => {
+    mensaje += `• ${err}\n`;
+  });
+}
 
       Swal.fire({
         icon: resultado.duplicados.length ? 'warning' : 'success',

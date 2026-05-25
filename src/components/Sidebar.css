@@ -2,7 +2,7 @@
 .app-layout {
   display: flex;
   height: 100vh;
-  font-family: "Segoe UI", sans-serif;
+  font-family: 'Segoe UI', sans-serif;
   background: #f7f8fa;
   min-width: 1200px !important;
 }
@@ -11,7 +11,7 @@
 .sidebar {
   width: 260px;
   background: #ff002211;
-  color: #1E293B;
+  color: #1e293b;
   display: flex;
   flex-direction: column;
   padding: 20px 15px;
@@ -28,7 +28,7 @@
   padding-right: 8px;
   scrollbar-width: thin;
   /* Firefox */
-  scrollbar-color: #1E293B;
+  scrollbar-color: #1e293b;
   /* color dorado translúcido */
   scroll-behavior: smooth;
   /* desplazamiento suave */
@@ -45,18 +45,30 @@
 }
 
 .menu::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(245, 230, 196, 0.4), rgba(245, 230, 196, 0.6));
+  background: linear-gradient(
+    180deg,
+    rgba(245, 230, 196, 0.4),
+    rgba(245, 230, 196, 0.6)
+  );
   border-radius: 10px;
   transition: background 0.3s ease;
 }
 
 .menu::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(245, 230, 196, 0.7), rgba(245, 230, 196, 0.9));
+  background: linear-gradient(
+    180deg,
+    rgba(245, 230, 196, 0.7),
+    rgba(245, 230, 196, 0.9)
+  );
 }
 
 /* Añade un sutil brillo al pasar el mouse por el menú */
 .menu:hover::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(245, 230, 196, 0.6), rgba(245, 230, 196, 0.8));
+  background: linear-gradient(
+    180deg,
+    rgba(245, 230, 196, 0.6),
+    rgba(245, 230, 196, 0.8)
+  );
 }
 
 /* LOGO */
@@ -70,7 +82,7 @@
 
 .logo-title {
   font-weight: 700;
-  color: #0A2A66;
+  color: #0a2a66;
   font-size: 18px;
 }
 
@@ -86,6 +98,11 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+.menu a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .menu-item {
@@ -107,7 +124,7 @@
 
 /* Active */
 .menu-item.active {
-  background: #0A2A66;
+  background: #0a2a66;
   color: white;
   font-weight: 600;
 }
@@ -123,7 +140,7 @@
   padding: 10px;
   border-radius: 10px;
   border: none;
-  background: #C62828;
+  background: #c62828;
   color: white;
   cursor: pointer;
   transition: 0.3s;
@@ -140,4 +157,48 @@
   background: #f7f8fa;
   overflow-y: auto;
   border-radius: 0 0 0 12px;
+}
+
+.badge-menu {
+  background: #e53935;
+  color: white;
+  border-radius: 999px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.badge-area {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+
+  background: #e53935;
+  color: white;
+  border-radius: 999px;
+
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.badge-area.vacio {
+  visibility: hidden;
 }

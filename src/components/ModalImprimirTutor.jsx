@@ -58,7 +58,7 @@ export default function ModalImprimirTutor({ data, cerrar }) {
         </p>
 
         <input
-          placeholder="Número de Cite (ej: 3228)"
+          placeholder="Número de Cite"
           value={numero}
           onChange={(e) => setNumero(e.target.value)}
         />
